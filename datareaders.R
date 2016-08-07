@@ -45,4 +45,14 @@ rbind.read.csvs <- function(fnames, ...) {
 #     mood return to baseline
 
 # Repeated measures one-way anova
+# https://www.r-bloggers.com/r-tutorial-series-one-way-repeated-measures-anova/
+# In a repeated measures ANOVA, we instead treat each level of our independent variable
+# as if it were a variable, thus placing them side by side as columns. Hence, rather
+# than having one vertical column for voting interest, with a second column for age, 
+# we have three separate columns for voting interest, one for each age level
+
+
+
 # Tukey's HSD 
+
+
