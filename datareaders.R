@@ -19,7 +19,7 @@ rbind.read.csvs <- function(fnames, ...) {
   return(do.call('rbind', list_of_data_frames))
 }
 
-# Predictors
+# Predictors/covariates?
 #     HR heart rate
 #     VO₂ max
 #     height
