@@ -12,5 +12,5 @@ max(predict(loess(Rel.VO2 ~ HR, data=obsvo2)))
 
 
 require(ggplot2)
-ggplot(obsvo2, aes(HR, Rel.VO2)) + geom_point() + geom_smooth()
+ggplot(obsvo2, aes(HR, Rel.VO2)) + geom_point() + geom_smooth(method = "loess")
 
