@@ -1,5 +1,5 @@
-vo2filenames <- Sys.glob("./sourcedata/*VO2*.xlsx")
-compfilenames <- Sys.glob("./sourcedata/*Comp*.xlsx")
+vo2filenames <- choose.files(filters=matrix(c("Excel", "*.xls*")))
+compfilenames <- choose.files(filters=matrix(c("Excel", "*.xls*")))
 
 ingestvo2 <- function(afilename) {
   require(readxl)
