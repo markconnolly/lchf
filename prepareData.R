@@ -1,0 +1,14 @@
+vo2filenames <- Sys.glob("./sourcedata/*VO2*.xlsx")
+compfilenames <- Sys.glob("./sourcedata/*Comp*.xlsx")
+
+ingestvo2 <- function(afilename) {
+  require(readxl)
+  parts <- unlist(strsplit(basename(afilename)," "))
+  columns <- data.frame("subj" = parts[1],
+                        "testnumber" = parts[2],
+                        "testdate" = as.Date(parts[3],format="%m%d%y")
+                        )
+  obsvo2 <- read_excel(afilename, sheet=1, skip=4, col_names=FALSE)
+  names(obsvo2) <- trim(names(read_excel(vo2datafile, sheet=1, skip=2, col_names=TRUE)))
+  return(obsvo2)
+}
