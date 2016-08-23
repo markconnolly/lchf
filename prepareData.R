@@ -10,7 +10,7 @@ ingestvo2 <- function(afilename) {
   return(cbind(columns,obsvo2))
 }
 
-excelfilter <- matrix(c("Excel", "*.xls*"))
+excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
 
 vo2filenames <- choose.files(filters=excelfilter)
 compfilenames <- choose.files(filters=excelfilter)
