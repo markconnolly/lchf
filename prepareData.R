@@ -10,5 +10,5 @@ ingestvo2 <- function(afilename) {
                         )
   obsvo2 <- read_excel(afilename, sheet=1, skip=4, col_names=FALSE)
   names(obsvo2) <- trim(names(read_excel(vo2datafile, sheet=1, skip=2, col_names=TRUE)))
-  return(obsvo2)
+  return(cbind(columns,obsvo2))
 }
