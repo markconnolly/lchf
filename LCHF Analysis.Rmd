@@ -1,11 +1,32 @@
+---
+title: "Low Carbohydrate High Fata Data Analysis"
+subtitle: "Repeated measures on subjects"
+author: "Mark Connolly"
+date: "`r Sys.Date()`"
+output:
+  tufte::tufte_html: default
+bibliography: lchf.bib
+link-citations: yes
+---
+
+```{r setup, include=FALSE}
+library(tufte)
 require(ggplot2)
 require(readxl)
 require(gdata)
-require(knitr)
 
-citPkgs <- c(names(sessionInfo()$otherPkgs), "base") 
+# invalidate cache when the tufte version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+```
 
-write_bib(citPkgs, file="lchf.bib")
+# Introduction
+
+The data analysis uses software and packages from The R Project for Statistical Computing[@R-base].
+
+## Data Preparation
+
+```{r}
 
 excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
 
@@ -39,21 +60,21 @@ vo2data <- merge(vo2, manualmeasures,
 
 vo2data$subj = as.factor(vo2data$subj)
 
-
 cursubj <- "123456"
 
+```
+
+## Plotz
+
+```{r fig-12346vo2, fig.cap = "Rel.VO2 ~ Heartrate", cache=TRUE}
 ggplot(data=subset(vo2data,subj==cursubj), aes(x=HR, y=Rel.VO2, col=subj)) + 
        geom_point() + 
        geom_smooth() +
        ggtitle(paste("Rel.VO2 ~ Heartrate for subject",cursubj))
+```
 
 
-ggplot(data=subset(vo2data,subj==cursubj), aes(x=HR, y=`%Fat`,col="Fat")) + 
-       geom_point() + 
-       geom_smooth() +
-       geom_point(aes(x=HR,y=`%Carbs`,col="Carbs")) + 
-       geom_smooth(aes(x=HR,y=`%Carbs`,col="Carbs")) + 
-       ylab("Calorie source (%)") +
-       ggtitle(paste("crossover for subject",cursubj))
+
+# References
 
 
