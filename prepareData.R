@@ -41,19 +41,42 @@ vo2data$subj = as.factor(vo2data$subj)
 
 
 cursubj <- "123456"
+hr <- subset(vo2data, subj==cursubj)[,c("%Fat","%Carbs","HR", "Rel.VO2")]
+hr <- hr[order(hr$`%Fat`),]
+names(hr) <- c("fat","carbs","HR","Rel.VO2")
+hrfromfatloess <- loess(HR ~ fat, data=hr)
+crossover <- predict(hrfromfatloess, newdata=50)
 
-ggplot(data=subset(vo2data,subj==cursubj), aes(x=HR, y=Rel.VO2, col=subj)) + 
+
+carbs <- subset(vo2data, subj==cursubj)[,c("%Fat","%Carbs","HR", "Rel.VO2")]
+carbs <- carbs[order(carbs$`%Carbs`),]
+names(carbs) <- c("fat","carbs","HR","Rel.VO2")
+hrfromcarbsloess <- loess(HR ~ fat, data=carbs)
+predict(hrfromcarbsloess, newdata=50)
+
+
+fat <- subset(vo2data, subj==cursubj)[,c("%Fat","%Carbs","HR", "Rel.VO2")]
+fat <- fat[order(fat$HR),]
+names(fat) <- c("fat","carbs","HR","Rel.VO2")
+fatfromhrloess <- loess(fat ~ HR, data=fat)
+hr$predictedfat <- predict(fatfromhrloess, newdata=hr)
+
+
+ggplot(data=hr, aes(x=HR, y=Rel.VO2)) + 
        geom_point() + 
        geom_smooth() +
        ggtitle(paste("Rel.VO2 ~ Heartrate for subject",cursubj))
 
+labely <- max(hr$fat) - mean(hr$fat)/2
 
-ggplot(data=subset(vo2data,subj==cursubj), aes(x=HR, y=`%Fat`,col="Fat")) + 
+ggplot(data=hr, aes(x=HR, y=fat, col="Fat")) + 
        geom_point() + 
        geom_smooth() +
-       geom_point(aes(x=HR,y=`%Carbs`,col="Carbs")) + 
-       geom_smooth(aes(x=HR,y=`%Carbs`,col="Carbs")) + 
-       ylab("Calorie source (%)") +
-       ggtitle(paste("crossover for subject",cursubj))
+       geom_point(aes(x=HR,y=carbs,col="Carbs")) + 
+       geom_smooth(aes(x=HR,y=carbs,col="Carbs")) + 
+       #ylab("%KCal / min") +
+       ggtitle(paste("crossover for subject",cursubj)) + 
+       geom_vline(xintercept = crossover) +
+       geom_label(x=crossover, y=labely, label=paste("predicted HR at 50%\n",round(crossover),"bpm"))
 
 
