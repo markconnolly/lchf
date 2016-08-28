@@ -1,19 +1,21 @@
 ---
-title: "Low Carbohydrate High Fata Data Analysis"
+title: "Data Processing for Low Carb High Fat Diet"
 subtitle: "Repeated measures on subjects"
 author: "Mark Connolly"
 date: "`r Sys.Date()`"
 output:
-  tufte::tufte_html: default
+  word_document: 
+    highlight: default
 bibliography: lchf.bib
-link-citations: yes
+link-citations: no
 ---
 
 ```{r setup, include=FALSE}
-library(tufte)
+require(knitr)
 require(ggplot2)
 require(readxl)
 require(gdata)
+require(tidyr)
 
 # invalidate cache when the tufte version changes
 knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
@@ -21,60 +23,123 @@ options(htmltools.dir.version = FALSE)
 ```
 
 # Introduction
+Analysis of stuff.
 
-The data analysis uses software and packages from The R Project for Statistical Computing[@R-base].
-
-## Data Preparation
-
+# Data Preparation
+Set up for combining several spreadsheets into a single data frame.  The sheets must all have the same structure and the same column names.
 ```{r}
-
 excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
-
 ingestvo2 <- function(afilename) {
   parts <- unlist(strsplit(basename(afilename)," "))
-  columns <- data.frame("subj" = as.numeric(parts[1]),
-                        "testnumber" = as.numeric(parts[2]),
-                        "testdate" = as.Date(parts[3],format="%m%d%y")
-                        ) 
-  obsvo2 <- read_excel(afilename, sheet=1, skip=4, col_names=FALSE)
-  names(obsvo2) <- trim(names(read_excel(afilename, sheet=1, skip=2, col_names=TRUE)))
+  columns <- 
+    data.frame("subj" = as.numeric(parts[1]),
+               "testnumber" = as.numeric(parts[2]),
+               "testdate" = as.Date(parts[3],format="%m%d%y")
+              ) 
+  obsvo2 <- 
+    read_excel(afilename, sheet=1, skip=4, col_names=FALSE)
+  names(obsvo2) <- 
+    trim(names(read_excel(afilename, sheet=1, skip=2, col_names=TRUE)))
   obsvo2$interval <- 0:(nrow(obsvo2) - 1)
   return(cbind(columns,obsvo2))
 }
+```
 
+Create a list that contains user-selected files, with each file processed by the ingestvo2 function.  The data frames in the list are then bound together by row.
 
-list_of_data_frames <- lapply(choose.files(filters = excelfilter,
-                                          caption = "Select VO2 files to combine"), 
-                              FUN=ingestvo2)
+```{r}
+# user selects source files (all with the same structure)
+list_of_files <- 
+  choose.files(filters = excelfilter,
+              caption = "Select VO2 files to combine")
+# each file is ingested to create a data frame
+# each data frame is added to a list 
+list_of_data_frames <- 
+  lapply(list_of_files, 
+        FUN=ingestvo2)
+# the data frames in the list are bound together by rows
+vo2data <- do.call('rbind', list_of_data_frames)
+```
 
-vo2 <- do.call('rbind', list_of_data_frames)
-
+```{r eval=FALSE, include=FALSE}
 manualmeasures <- read_excel(choose.files(filters = excelfilter,
-                               multi = FALSE,
-                               caption = "Select the manual measures file"))
-
+                              multi = FALSE,
+                              caption = "Select the manual measures file"))
 vo2data <- merge(vo2, manualmeasures, 
-                 by.x=c("subj","testnumber"), 
-                 by.y=c("Subject","Test Number"), 
-                 all.x=TRUE)
+                by.x=c("subj","testnumber"), 
+                by.y=c("Subject","Test Number"), 
+                all.x=TRUE)
 
+```
+
+Make the subject a factor.
+```{r}
 vo2data$subj = as.factor(vo2data$subj)
-
-cursubj <- "123456"
-
-```
-
-## Plotz
-
-```{r fig-12346vo2, fig.cap = "Rel.VO2 ~ Heartrate", cache=TRUE}
-ggplot(data=subset(vo2data,subj==cursubj), aes(x=HR, y=Rel.VO2, col=subj)) + 
-       geom_point() + 
-       geom_smooth() +
-       ggtitle(paste("Rel.VO2 ~ Heartrate for subject",cursubj))
 ```
 
 
+## Crossover Plot
+The subject heartrate when percent kcal / min from fat equals the percent kcal / min from carbohydrates.
+
+Define the subject and the test number that will be plotted.
+```{r}
+testnumber = 1
+subject = "123456"
+```
+
+Subset the data, selecting for test number and subject and for only the needed columns.  The data from the subset are persisted as the dataframe `fuel`.
+```{r}
+fuel <- subset(vo2data, subj==subject & testnumber == testnumber)[,c("%Fat","%Carbs","HR", "Rel.VO2")]
+```
+
+Create a "long" form of the data to be used for the plot. Functions `head` and `tail` are used to convey the structure changes to the data frame.  The long form is used for the plot.
+```{r}
+fuel_long <- gather(fuel,                # the source data frame
+                    percentage,          # the column name of the key
+                    `%KCal / min`,       # the column name of the value
+                    c(`%Fat`,`%Carbs`))  # the columns that are the source of the key name
+                                         # and the source of the value.
+head(fuel_long)   # shows the top part of the data frame
+tail(fuel_long)   # shows the bottom part of the data frame
+```
+
+Find the heartrate where the lines cross.  The lines cross when the %fat and %carbohydrates are each 50.  A `loess`[@R-base] function fits a model to predict %Fat for the heartrate. Then the predicted %Fat value that is closest to 50 is used to index the heartrate value.  The heartrate at 50% is used to mark the crossover point on the graph.
+```{r}
+# fuel data frame is ordered by HR and the result
+# is used to construct polynomial regression fitting of %Fat ~ HR
+fatfromhrloess <-
+  loess(data=fuel[order(fuel$HR),], `%Fat` ~ HR)
+# A data frame is constructed for predicting %Fat for sequenc of heartrate values.
+# The sequence is from the lowest observed value to the hightest observed value, 
+# incremented by 1.
+predictedfat <- 
+  data.frame(HR=c(min(fuel$HR):max(fuel$HR)))
+# Predicted values of %Fat (fat) are added to the data frame.  The values are predicted
+# using the loess fit model and the sequence of heartrates.
+predictedfat$fat <- 
+  predict(loess(data=fuel,`%Fat` ~ HR), 
+          newdata = predictedfat)
+# The predicted value of fat is used to find the closest value to 50%.  This value is used to
+# index the heartrate at that value. This is the imputed heartrate at 50%.
+crossover <- 
+  predictedfat$HR[which.min(abs(predictedfat$fat - 50))]
+```
+
+Now plot the crossover with a label.
+```{r fig-12346vo2, fig.cap = "Rel.VO2 ~ Heartrate"}
+ggplot(data=fuel_long,aes(x=HR,y=`%KCal / min`,colour=percentage)) + 
+  geom_point() + 
+  geom_smooth() +
+  geom_vline(xintercept = crossover) +
+  ggtitle(paste("crossover for subject",subject)) + 
+  geom_vline(xintercept = crossover) +
+  geom_label(x=crossover, y=100, label=paste("predicted HR at 50% =",crossover,"bpm"))
+```
 
 # References
+```{r include=FALSE}
+citPkgs <- c(names(sessionInfo()$otherPkgs), "base")
+write_bib(citPkgs, file="lchf.bib")
 
+```
 

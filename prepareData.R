@@ -1,6 +1,7 @@
 require(ggplot2)
 require(readxl)
 require(gdata)
+require(tidyr)
 require(knitr)
 
 citPkgs <- c(names(sessionInfo()$otherPkgs), "base") 
@@ -41,25 +42,32 @@ vo2data$subj = as.factor(vo2data$subj)
 
 
 cursubj <- "123456"
-hr <- subset(vo2data, subj==cursubj)[,c("%Fat","%Carbs","HR", "Rel.VO2")]
-hr <- hr[order(hr$`%Fat`),]
-names(hr) <- c("fat","carbs","HR","Rel.VO2")
-hrfromfatloess <- loess(HR ~ fat, data=hr)
-crossover <- predict(hrfromfatloess, newdata=50)
+
+fuel <- subset(vo2data, subj==cursubj)[,c("%Fat","%Carbs","HR", "Rel.VO2")]
+fuel_long <- gather(fuel, percentage, `%KCal / min`, c(`%Fat`,`%Carbs`))
+
+fatfromhrloess <- 
+  loess(data=fuel[order(fuel$HR),], `%Fat` ~ HR)
+predictedfat <- 
+  data.frame(HR=c(min(fuel$HR):max(fuel$HR)))
+predictedfat$fat <- 
+  predict(loess(data=fuel,`%Fat` ~ HR), 
+          newdata = predictedfat)
+crossover <- 
+  predictedfat$HR[which.min(abs(predictedfat$fat - 50))]
 
 
-carbs <- subset(vo2data, subj==cursubj)[,c("%Fat","%Carbs","HR", "Rel.VO2")]
-carbs <- carbs[order(carbs$`%Carbs`),]
-names(carbs) <- c("fat","carbs","HR","Rel.VO2")
-hrfromcarbsloess <- loess(HR ~ fat, data=carbs)
-predict(hrfromcarbsloess, newdata=50)
+ggplot(data=fuel_long,aes(x=HR,y=`%KCal / min`,colour=percentage)) + 
+  geom_point() + 
+  geom_smooth() +
+  geom_vline(xintercept = hrat50) +
+  ggtitle(paste("crossover for subject",subject)) + 
+  geom_vline(xintercept = crossover) +
+  geom_label(x=crossover, y=labely, label=paste("predicted HR at 50%",crossover,"bpm"))
+
+  
 
 
-fat <- subset(vo2data, subj==cursubj)[,c("%Fat","%Carbs","HR", "Rel.VO2")]
-fat <- fat[order(fat$HR),]
-names(fat) <- c("fat","carbs","HR","Rel.VO2")
-fatfromhrloess <- loess(fat ~ HR, data=fat)
-hr$predictedfat <- predict(fatfromhrloess, newdata=hr)
 
 
 ggplot(data=hr, aes(x=HR, y=Rel.VO2)) + 
