@@ -4,10 +4,15 @@ subtitle: "Repeated measures on subjects"
 author: "Mark Connolly"
 date: "`r Sys.Date()`"
 output:
-  word_document: 
-    highlight: default
+  tufte::tufte_html: default
+  tufte::tufte_handout:
+    citation_package: natbib
+    latex_engine: xelatex
+  tufte::tufte_book:
+    citation_package: natbib
+    latex_engine: xelatex
 bibliography: lchf.bib
-link-citations: no
+link-citations: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -17,6 +22,7 @@ require(readxl)
 require(gdata)
 require(tidyr)
 
+library(tufte)
 # invalidate cache when the tufte version changes
 knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
 options(htmltools.dir.version = FALSE)
@@ -89,44 +95,50 @@ subject = "123456"
 
 Subset the data, selecting for test number and subject and for only the needed columns.  The data from the subset are persisted as the dataframe `fuel`.
 ```{r}
-fuel <- subset(vo2data, subj==subject & testnumber == testnumber)[,c("%Fat","%Carbs","HR", "Rel.VO2")]
+fuel <- 
+  subset(vo2data, 
+         subj==subject & 
+        testnumber == testnumber)[,c("%Fat","%Carbs","HR", "Rel.VO2")]
 ```
 
-Create a "long" form of the data to be used for the plot. Functions `head` and `tail` are used to convey the structure changes to the data frame.  The long form is used for the plot.
-```{r}
-fuel_long <- gather(fuel,                # the source data frame
-                    percentage,          # the column name of the key
-                    `%KCal / min`,       # the column name of the value
-                    c(`%Fat`,`%Carbs`))  # the columns that are the source of the key name
-                                         # and the source of the value.
+Using the `gather` [@R-tidyr] function, create a "long" form of the data to be used for the plot. Functions `head` and `tail` are used to convey the structure changes to the data frame.  The long form is used for the plot.
+```{r warning=FALSE}
+fuel_long <- gather(fuel,                # source data frame
+                    percentage,          # column name of the key
+                    `%KCal / min`,       # column name of the value
+                    c(`%Fat`,`%Carbs`))  # columns that are sources of
+                                         # key names and values.
 head(fuel_long)   # shows the top part of the data frame
 tail(fuel_long)   # shows the bottom part of the data frame
 ```
 
-Find the heartrate where the lines cross.  The lines cross when the %fat and %carbohydrates are each 50.  A `loess`[@R-base] function fits a model to predict %Fat for the heartrate. Then the predicted %Fat value that is closest to 50 is used to index the heartrate value.  The heartrate at 50% is used to mark the crossover point on the graph.
+Find the heartrate where the lines cross.  The lines cross when the %fat and %carbohydrates are each 50.  The `loess` [@R-base] function fits a model to predict %Fat for the heartrate. Then the predicted %Fat value that is closest to 50 is used to index the heartrate value.  The heartrate at 50% is used to mark the crossover point on the graph.
 ```{r}
 # fuel data frame is ordered by HR and the result
 # is used to construct polynomial regression fitting of %Fat ~ HR
 fatfromhrloess <-
   loess(data=fuel[order(fuel$HR),], `%Fat` ~ HR)
+
 # A data frame is constructed for predicting %Fat for sequenc of heartrate values.
 # The sequence is from the lowest observed value to the hightest observed value, 
 # incremented by 1.
 predictedfat <- 
   data.frame(HR=c(min(fuel$HR):max(fuel$HR)))
-# Predicted values of %Fat (fat) are added to the data frame.  The values are predicted
-# using the loess fit model and the sequence of heartrates.
+
+# Predicted values of %Fat (fat) are added to the data frame.  The values are 
+# predicted using the loess fit model and the sequence of heartrates.
 predictedfat$fat <- 
   predict(loess(data=fuel,`%Fat` ~ HR), 
           newdata = predictedfat)
-# The predicted value of fat is used to find the closest value to 50%.  This value is used to
-# index the heartrate at that value. This is the imputed heartrate at 50%.
+
+# The predicted value of fat is used to find the closest value to 50%,
+# resulting in an index to the heartrate used to impute the 50%.  
 crossover <- 
   predictedfat$HR[which.min(abs(predictedfat$fat - 50))]
 ```
 
-Now plot the crossover with a label.
-```{r fig-12346vo2, fig.cap = "Rel.VO2 ~ Heartrate"}
+Now plot the crossover with a label.  The package `ggplot2` [@R-ggplot2] is used to produce the plots.
+```{r fig-12346vo2, fig.cap = "%KCal / min ~ Heartrate"}
 ggplot(data=fuel_long,aes(x=HR,y=`%KCal / min`,colour=percentage)) + 
   geom_point() + 
   geom_smooth() +
