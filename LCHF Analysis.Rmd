@@ -142,14 +142,14 @@ ggplot(data=fuel_long,
   geom_point() + 
   geom_smooth() +
   geom_vline(xintercept = crossover) +
-  ggtitle(paste("Crossover for Subject",subject)) + 
+  ggtitle(paste("Model predicted crossover for subject",subject)) + 
   geom_vline(xintercept = crossover,
              color = "darkgrey") +
   geom_text(x=crossover, 
-            y=100, 
-            label=paste("HR bpm at 50% =",
+            y=5, 
+            label=paste("HR bpm at \n50% fat (predicted) =",
                         crossover),
-            color = "darkgrey",
+            color = "blue",
             show.legend = FALSE)
 ```
 
