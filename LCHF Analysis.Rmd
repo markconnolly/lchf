@@ -14,20 +14,21 @@ link-citations: yes
 ---
 
 ```{r setup, include=FALSE}
-require(knitr)
-require(ggplot2)
-require(readxl)
-require(gdata)
-require(tidyr)
-
+library(knitr)
+library(ggplot2)
+library(readxl)
+library(gdata)
+library(tidyr)
 library(tufte)
+library(magrittr, warn.conflicts=FALSE)
 # invalidate cache when the tufte version changes
 knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
 options(htmltools.dir.version = FALSE)
 ```
-
 # Introduction
 Analysis of collected observations.  Literate programming provided by the R packages `knitr` [@R-knitr] and the document template `tufte`  [@R-tufte].
+
+In some of the code, the operator `%>%` will be seen.  The operator is provided by the package `magrittr` [@R-magrittr].  It is a pipe that forwards the result of the preceeding function to the suceeding function.  By default, the forwarded object is applied as the first parameter of the succeeding function.  Using the `.` placeholder moves the argument to a specific parameter location in the succeeding function call.  The pipe is used where it improves readability.  A series of functions interspersed with `%>%` should be viewed as pipeline or processing elements, with the output of one function the input to the next.
 
 # Crossover
 At the start of the test, fat will predominate as the source of calories.  As the test proceeds and the energy burn rate increases (as indicated by increased heartrate), fat as a source will diminish and carbohydrate as a source will increase.  The crossover graph captures the trends and imputes the heartrate where fat and carbohydrate contribution are equal (the point where carbohydrate will start to become the predominant energy source).
@@ -44,37 +45,35 @@ excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
 # and structured spreadsheet and convert the file to a 
 # data frame (which is returned to the caller)
 ingestvo2 <- function(afilename) {
-  parts <- unlist(strsplit(basename(afilename)," "))
+  nameparts <- unlist(strsplit(basename(afilename)," "))
   columns <- 
-    data.frame("subj" = as.numeric(parts[1]),
-               "testnumber" = as.numeric(parts[2]),
-               "testdate" = as.Date(parts[3],format="%m%d%y")
+    data.frame("subj" = as.numeric(nameparts[1]),
+               "testnumber" = as.numeric(nameparts[2]),
+               "testdate" = as.Date(nameparts[3],format="%m%d%y")
               ) 
-  obsvo2 <- 
-    read_excel(afilename, sheet=1, skip=4, col_names=FALSE)
-  names(obsvo2) <- 
-    trim(names(read_excel(afilename, sheet=1, skip=2, col_names=TRUE)))
-  obsvo2$interval <- 0:(nrow(obsvo2) - 1)
-  return(cbind(columns,obsvo2))
+  sheet <- 
+    read_excel(afilename, 
+               sheet=1, 
+               skip=4, 
+               col_names=FALSE)
+  names(sheet) <- 
+    trim(names(read_excel(afilename, 
+                          sheet=1, 
+                          skip=2, 
+                          col_names=TRUE)))
+  sheet$interval <- 0:(nrow(sheet) - 1)
+  return(cbind(columns,sheet))
 }
 ```
 
 ## Select and combine Excel source files
-Create a list that contains user-selected files, with each file processed by the ingestvo2 function.  The data frames in the list are then bound together by row.
+Create a list that contains user-selected files, with each file processed by the `ingestvo2` function.  The data frames in the list are then bound together by row.  
 
 ```{r}
-# user selects source files (all with the same structure)
-list_of_files <- 
-  choose.files(filters = excelfilter,
-              caption = "Select VO2 files to combine")
-# each file is ingested to create a data frame
-# each data frame is added to a list 
-list_of_data_frames <- 
-  lapply(list_of_files, 
-        FUN=ingestvo2)  # the ingest function 
-                        # defined at the start
-# the data frames in the list are bound together by rows
-vo2data <- do.call('rbind', list_of_data_frames)
+vo2data <- choose.files(filters = excelfilter,
+              caption = "Select VO2 files to combine") %>%
+           lapply(FUN=ingestvo2) %>% 
+           do.call('rbind', .)
 
 vo2data$subj = as.factor(vo2data$subj)
 ```

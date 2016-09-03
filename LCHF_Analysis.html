@@ -12,7 +12,7 @@
 
 <meta name="author" content="Mark Connolly" />
 
-<meta name="date" content="2016-08-31" />
+<meta name="date" content="2016-09-03" />
 
 <title>Data Processing for Low Carb High Fat Diet</title>
 
@@ -43,7 +43,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <h1 class="title toc-ignore">Data Processing for Low Carb High Fat Diet</h1>
 <h3 class="subtitle"><em>Repeated measures on subjects</em></h3>
 <h4 class="author"><em>Mark Connolly</em></h4>
-<h4 class="date"><em>2016-08-31</em></h4>
+<h4 class="date"><em>2016-09-03</em></h4>
 
 
 <div id="TOC">
@@ -63,6 +63,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>Analysis of collected observations. Literate programming provided by the R packages <code>knitr</code> <span class="citation">(Xie <label for="tufte-mn-1" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-1" class="margin-toggle">2016<span class="marginnote">Xie, Yihui. 2016. <em>Knitr: A General-Purpose Package for Dynamic Report Generation in R</em>. <a href="https://CRAN.R-project.org/package=knitr" class="uri">https://CRAN.R-project.org/package=knitr</a>.</span>)</span> and the document template <code>tufte</code> <span class="citation">(Xie and Allaire <label for="tufte-mn-2" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-2" class="margin-toggle">2016<span class="marginnote">Xie, Yihui, and JJ Allaire. 2016. <em>Tufte: Tufte’s Styles for R Markdown Documents</em>. <a href="https://CRAN.R-project.org/package=tufte" class="uri">https://CRAN.R-project.org/package=tufte</a>.</span>)</span>.</p>
+<p>In some of the code, the operator <code>%&gt;%</code> will be seen. The operator is provided by the package <code>magrittr</code> <span class="citation">(Bache and Wickham <label for="tufte-mn-3" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-3" class="margin-toggle">2014<span class="marginnote">Bache, Stefan Milton, and Hadley Wickham. 2014. <em>Magrittr: A Forward-Pipe Operator for R</em>. <a href="https://CRAN.R-project.org/package=magrittr" class="uri">https://CRAN.R-project.org/package=magrittr</a>.</span>)</span>. It is a pipe that forwards the result of the preceeding function to the suceeding function. By default, the forwarded object is applied as the first parameter of the succeeding function. Using the <code>.</code> placeholder moves the argument to a specific parameter location in the succeeding function call. The pipe is used where it improves readability. A series of functions interspersed with <code>%&gt;%</code> should be viewed as pipeline or processing elements, with the output of one function the input to the next.</p>
 </div>
 <div id="crossover" class="section level1">
 <h1>Crossover</h1>
@@ -78,35 +79,33 @@ excelfilter &lt;- matrix(c(&quot;Excel&quot;, &quot;*.xls*&quot;), ncol=2)
 # and structured spreadsheet and convert the file to a 
 # data frame (which is returned to the caller)
 ingestvo2 &lt;- function(afilename) {
-  parts &lt;- unlist(strsplit(basename(afilename),&quot; &quot;))
+  nameparts &lt;- unlist(strsplit(basename(afilename),&quot; &quot;))
   columns &lt;- 
-    data.frame(&quot;subj&quot; = as.numeric(parts[1]),
-               &quot;testnumber&quot; = as.numeric(parts[2]),
-               &quot;testdate&quot; = as.Date(parts[3],format=&quot;%m%d%y&quot;)
+    data.frame(&quot;subj&quot; = as.numeric(nameparts[1]),
+               &quot;testnumber&quot; = as.numeric(nameparts[2]),
+               &quot;testdate&quot; = as.Date(nameparts[3],format=&quot;%m%d%y&quot;)
               ) 
-  obsvo2 &lt;- 
-    read_excel(afilename, sheet=1, skip=4, col_names=FALSE)
-  names(obsvo2) &lt;- 
-    trim(names(read_excel(afilename, sheet=1, skip=2, col_names=TRUE)))
-  obsvo2$interval &lt;- 0:(nrow(obsvo2) - 1)
-  return(cbind(columns,obsvo2))
+  sheet &lt;- 
+    read_excel(afilename, 
+               sheet=1, 
+               skip=4, 
+               col_names=FALSE)
+  names(sheet) &lt;- 
+    trim(names(read_excel(afilename, 
+                          sheet=1, 
+                          skip=2, 
+                          col_names=TRUE)))
+  sheet$interval &lt;- 0:(nrow(sheet) - 1)
+  return(cbind(columns,sheet))
 }</code></pre>
 </div>
 <div id="select-and-combine-excel-source-files" class="section level2">
 <h2>Select and combine Excel source files</h2>
-<p>Create a list that contains user-selected files, with each file processed by the ingestvo2 function. The data frames in the list are then bound together by row.</p>
-<pre class="r"><code># user selects source files (all with the same structure)
-list_of_files &lt;- 
-  choose.files(filters = excelfilter,
-              caption = &quot;Select VO2 files to combine&quot;)
-# each file is ingested to create a data frame
-# each data frame is added to a list 
-list_of_data_frames &lt;- 
-  lapply(list_of_files, 
-        FUN=ingestvo2)  # the ingest function 
-                        # defined at the start
-# the data frames in the list are bound together by rows
-vo2data &lt;- do.call('rbind', list_of_data_frames)
+<p>Create a list that contains user-selected files, with each file processed by the <code>ingestvo2</code> function. The data frames in the list are then bound together by row.</p>
+<pre class="r"><code>vo2data &lt;- choose.files(filters = excelfilter,
+              caption = &quot;Select VO2 files to combine&quot;) %&gt;%
+           lapply(FUN=ingestvo2) %&gt;% 
+           do.call('rbind', .)
 
 vo2data$subj = as.factor(vo2data$subj)</code></pre>
 </div>
@@ -121,7 +120,7 @@ fuel &lt;-
 </div>
 <div id="restructure-the-data-frame" class="section level2">
 <h2>Restructure the data frame</h2>
-<p>Using the <code>gather</code> <span class="citation">(Wickham <label for="tufte-mn-3" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-3" class="margin-toggle">2016<span class="marginnote">Wickham, Hadley. 2016. <em>Tidyr: Easily Tidy Data with `spread()` and `gather()` Functions</em>. <a href="https://CRAN.R-project.org/package=tidyr" class="uri">https://CRAN.R-project.org/package=tidyr</a>.</span>)</span> function, create a “long” form of the data to be used for the plot. Functions <code>head</code> and <code>tail</code> are used to convey the structure changes to the data frame. The long form is used for the plot.</p>
+<p>Using the <code>gather</code> <span class="citation">(Wickham <label for="tufte-mn-4" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-4" class="margin-toggle">2016<span class="marginnote">Wickham, Hadley. 2016. <em>Tidyr: Easily Tidy Data with `spread()` and `gather()` Functions</em>. <a href="https://CRAN.R-project.org/package=tidyr" class="uri">https://CRAN.R-project.org/package=tidyr</a>.</span>)</span> function, create a “long” form of the data to be used for the plot. Functions <code>head</code> and <code>tail</code> are used to convey the structure changes to the data frame. The long form is used for the plot.</p>
 <pre class="r"><code>fuel_long &lt;- gather(fuel,                # source data frame
                     percentage,          # column name of the key
                     `%KCal / min`,       # column name of the value
@@ -146,7 +145,7 @@ head(fuel_long)   # shows the top part of the data frame</code></pre>
 </div>
 <div id="impute-the-crossover-point" class="section level2">
 <h2>Impute the crossover point</h2>
-<p>Find the heartrate where the lines cross. The lines cross when the %fat and %carbohydrates are each 50. The <code>loess</code> <span class="citation">(R Core Team <label for="tufte-mn-4" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-4" class="margin-toggle">2016<span class="marginnote">R Core Team. 2016. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/" class="uri">https://www.R-project.org/</a>.</span>)</span> function fits a model to predict %Fat for the heartrate. Then the predicted %Fat value that is closest to 50 is used to index the heartrate value. The heartrate at 50% is used to mark the crossover point on the graph.</p>
+<p>Find the heartrate where the lines cross. The lines cross when the %fat and %carbohydrates are each 50. The <code>loess</code> <span class="citation">(R Core Team <label for="tufte-mn-5" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-5" class="margin-toggle">2016<span class="marginnote">R Core Team. 2016. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/" class="uri">https://www.R-project.org/</a>.</span>)</span> function fits a model to predict %Fat for the heartrate. Then the predicted %Fat value that is closest to 50 is used to index the heartrate value. The heartrate at 50% is used to mark the crossover point on the graph.</p>
 <pre class="r"><code># fuel data frame is ordered by HR and the result
 # is used to construct polynomial regression fitting of %Fat ~ HR
 fatfromhrloess &lt;-
@@ -171,7 +170,7 @@ crossover &lt;-
 </div>
 <div id="plot-the-data" class="section level2">
 <h2>Plot the data</h2>
-<p>The package <code>ggplot2</code> <span class="citation">(Wickham and Chang <label for="tufte-mn-5" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-5" class="margin-toggle">2016<span class="marginnote">Wickham, Hadley, and Winston Chang. 2016. <em>Ggplot2: An Implementation of the Grammar of Graphics</em>. <a href="https://CRAN.R-project.org/package=ggplot2" class="uri">https://CRAN.R-project.org/package=ggplot2</a>.</span>)</span> is used to produce the plot. <label for="tufte-mn-6" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-6" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Note:</strong> The graphing process can be modified to produce sets of graphs, including graphs for a subject for each test, for subjects for each test, or any combination. <em>See Mark if this is desired.</em></span></span></p>
+<p>The package <code>ggplot2</code> <span class="citation">(Wickham and Chang <label for="tufte-mn-6" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-6" class="margin-toggle">2016<span class="marginnote">Wickham, Hadley, and Winston Chang. 2016. <em>Ggplot2: An Implementation of the Grammar of Graphics</em>. <a href="https://CRAN.R-project.org/package=ggplot2" class="uri">https://CRAN.R-project.org/package=ggplot2</a>.</span>)</span> is used to produce the plot. <label for="tufte-mn-7" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-7" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Note:</strong> The graphing process can be modified to produce sets of graphs, including graphs for a subject for each test, for subjects for each test, or any combination. <em>See Mark if this is desired.</em></span></span></p>
 <pre class="r"><code>ggplot(data=fuel_long,
        aes(x=HR,
            y=`%KCal / min`,
