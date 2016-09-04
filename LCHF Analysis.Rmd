@@ -9,6 +9,7 @@ output:
     toc_depth: 2
     citation_package: natbib
     latex_engine: xelatex
+    highlight: tango
 bibliography: lchf.bib
 link-citations: yes
 ---
@@ -20,7 +21,8 @@ library(readxl)
 library(gdata)
 library(tidyr)
 library(tufte)
-library(magrittr, warn.conflicts=FALSE)
+library(magrittr)
+library(rmarkdown)
 # invalidate cache when the tufte version changes
 knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
 options(htmltools.dir.version = FALSE)
@@ -28,7 +30,9 @@ options(htmltools.dir.version = FALSE)
 # Introduction
 Analysis of collected observations.  Literate programming provided by the R packages `knitr` [@R-knitr] and the document template `tufte`  [@R-tufte].
 
-In some of the code, the operator `%>%` will be seen.  The operator is provided by the package `magrittr` [@R-magrittr].  It is a pipe that forwards the result of the preceeding function to the suceeding function.  By default, the forwarded object is applied as the first parameter of the succeeding function.  Using the `.` placeholder moves the argument to a specific parameter location in the succeeding function call.  The pipe is used where it improves readability.  A series of functions interspersed with `%>%` should be viewed as pipeline or processing elements, with the output of one function the input to the next.
+This document is translated from rmarkdown [@R-rmarkdown] source.  The source can be found at [LCHF Analysis.Rmd](https://github.com/markconnolly/lchf/blob/master/LCHF%20Analysis.Rmd).
+
+The `%>%` operator will be seen in some of the code.  The package `magrittr` [@R-magrittr] provides this operator, called a pipe, which forwards the result of a preceeding function to a suceeding function in a sinle code stream.  By default, the forwarded object is "piped" into the succeeding function's first parameter slot.  The argument can be moved to other parameter slots in the succeeding call Using the `.` placeholder.  The pipe is used where it improves readability.  A series of functions interspersed with `%>%` should be viewed as pipeline or processing elements, with the output of one function the input to the next.
 
 # Crossover
 At the start of the test, fat will predominate as the source of calories.  As the test proceeds and the energy burn rate increases (as indicated by increased heartrate), fat as a source will diminish and carbohydrate as a source will increase.  The crossover graph captures the trends and imputes the heartrate where fat and carbohydrate contribution are equal (the point where carbohydrate will start to become the predominant energy source).
@@ -67,13 +71,14 @@ ingestvo2 <- function(afilename) {
 ```
 
 ## Select and combine Excel source files
-Create a list that contains user-selected files, with each file processed by the `ingestvo2` function.  The data frames in the list are then bound together by row.  
+Create a list that contains user-selected files, with each file processed by the `ingestvo2` function.  The data frames in the list are then bound together by row.  This is achieved in code using a pipeline of functions to process the inputs before assigning to the target variable. Note the `%>%` operator.
 
 ```{r}
-vo2data <- choose.files(filters = excelfilter,
-              caption = "Select VO2 files to combine") %>%
-           lapply(FUN=ingestvo2) %>% 
-           do.call('rbind', .)
+vo2data <- 
+  choose.files(filters = excelfilter,
+               caption = "Select VO2 files to combine") %>%
+  lapply(FUN=ingestvo2) %>% 
+  do.call('rbind', .)
 
 vo2data$subj = as.factor(vo2data$subj)
 ```
@@ -87,11 +92,12 @@ subject = "123456"
 fuel <- 
   subset(vo2data, 
          subj==subject & 
-        testnumber == testnumber)[,c("%Fat","%Carbs","HR")]
+        testnumber == testnumber)[,c("testnumber","subj","%Fat","%Carbs","HR")]
+head(fuel)
 ```
 
 ## Restructure the data frame
-Using the `gather` [@R-tidyr] function, create a "long" form of the data to be used for the plot. Functions `head` and `tail` are used to convey the structure changes to the data frame.  The long form is used for the plot.
+Using the `gather` [@R-tidyr] function, create a "long" form of the data to be used for the plot.  The `gather` function combines two or more columns such that the column names become factor values in a new column (the key colum) and the values of the designated columns become values in a second new column (the value column). The columns from the source not involved in the gathering remain in place, with values duplicated as needed to fill out the long structure. Functions `head` and `tail` are used to convey the structure changes to the data frame, which can be compared to `head(fuel)` from above.  The long form is used for plotting.
 ```{r warning=FALSE}
 fuel_long <- gather(fuel,                # source data frame
                     percentage,          # column name of the key
@@ -102,13 +108,15 @@ head(fuel_long)   # shows the top part of the data frame
 tail(fuel_long)   # shows the bottom part of the data frame
 ```
 
-## Impute the crossover point
+## Predict the crossover: `%Fat ~ HR`
 Find the heartrate where the lines cross.  The lines cross when the %fat and %carbohydrates are each 50.  The `loess` [@R-base] function fits a model to predict %Fat for the heartrate. Then the predicted %Fat value that is closest to 50 is used to index the heartrate value.  The heartrate at 50% is used to mark the crossover point on the graph.
 ```{r}
 # fuel data frame is ordered by HR and the result
 # is used to construct polynomial regression fitting of %Fat ~ HR
 fatfromhrloess <-
-  loess(data=fuel[order(fuel$HR),], `%Fat` ~ HR)
+  loess(data=fuel, `%Fat` ~ HR)
+
+summary(fatfromhrloess)
 
 # A data frame is constructed for predicting %Fat for sequenc of heartrate values.
 # The sequence is from the lowest observed value to the hightest observed value, 
@@ -119,38 +127,76 @@ predictedfat <-
 # Predicted values of %Fat (fat) are added to the data frame.  The values are 
 # predicted using the loess fit model and the sequence of heartrates.
 predictedfat$fat <- 
-  predict(loess(data=fuel,`%Fat` ~ HR), 
+  predict(fatfromhrloess, 
           newdata = predictedfat)
 
 # The predicted value of fat is used to find the closest value to 50%,
-# resulting in an index to the heartrate used to impute the 50%.  
-crossover <- 
+# resulting in an index to the heartrate used in the predicted values.  
+predictedcrossover <- 
   predictedfat$HR[which.min(abs(predictedfat$fat - 50))]
 ```
 
-## Plot the data
+The response of ```%KCal / min``` to `HR` is plotted.
 The package `ggplot2` [@R-ggplot2] is used to produce the plot.
 ```{marginfigure}
 **Note:** The graphing process can be modified to produce sets of graphs, including graphs for a subject for each test, for subjects for each test, or any combination.  *See Mark if this is desired.*
 ```
-```{r fig-12346vo2}
-ggplot(data=fuel_long,
-       aes(x=HR,
-           y=`%KCal / min`,
+
+```{r  fig.show = 'asis'}
+plottitle <- paste("Model predicted crossover for subject",
+                   subject)
+textlabel <- paste("HR bpm at \n50% fat (predicted) =",
+                      predictedcrossover)
+ggplot(data=fuel_long, 
+       aes(x=HR, y=`%KCal / min`, 
            color=percentage, 
            shape=percentage)) + 
-  geom_point() + 
-  geom_smooth() +
-  geom_vline(xintercept = crossover) +
-  ggtitle(paste("Model predicted crossover for subject",subject)) + 
-  geom_vline(xintercept = crossover,
-             color = "darkgrey") +
-  geom_text(x=crossover, 
-            y=5, 
-            label=paste("HR bpm at \n50% fat (predicted) =",
-                        crossover),
-            color = "blue",
-            show.legend = FALSE)
+ggtitle(plottitle) + 
+geom_point() + 
+geom_smooth() +
+geom_vline(xintercept = predictedcrossover,
+           color = "darkgrey") +
+geom_text(x=predictedcrossover, 
+          y=5, 
+          label=textlabel,
+          color = "blue",
+          show.legend = FALSE)
+```
+
+##  Predict the crossover: `HR ~ %Fat`
+The model is flipped to predict heartrate from the percentage energy expended coming from fat.
+
+```{r}
+hrfromfatloess <-
+  loess(fuel$HR ~ fuel$`%Fat` )
+
+summary(hrfromfatloess)
+
+predictedcrossover <- round(predict(hrfromfatloess, newdata=50))
+
+
+plottitle <- paste("Model predicted crossover for subject",
+                   subject)
+textlabel <- paste("HR bpm at \n50% fat (predicted) =",
+                      predictedcrossover)
+ggplot(data=fuel_long,
+       aes(x=`%KCal / min`,
+           y=HR,
+           color=percentage, 
+           shape=percentage)) + 
+ggtitle(plottitle) +
+geom_point() + 
+geom_smooth() +
+geom_hline(yintercept = predictedcrossover,
+           color = "darkgrey") +
+geom_text(x=10, 
+          y=predictedcrossover, 
+          label=textlabel,
+          color = "blue",
+          show.legend = FALSE) +
+coord_flip()
+
+
 ```
 
 ```{r include=FALSE}
