@@ -10,7 +10,7 @@ output:
     citation_package: natbib
     latex_engine: xelatex
     highlight: tango
-bibliography: lchf.bib
+bibliography: [lchf.bib,zotero.bib]
 link-citations: yes
 ---
 
@@ -29,7 +29,7 @@ knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
 options(htmltools.dir.version = FALSE)
 ```
 # Introduction
-Analysis of collected observations.  Literate programming provided by the R packages `knitr` [@R-knitr] and the document template `tufte`  [@R-tufte].
+Analysis of collected observations.  Weaving executed code with explanatory text to produce literate programming [@knuth_literate_1984] is provided by the R packages `knitr` [@R-knitr] and the document template `tufte`  [@R-tufte].
 
 This document is translated from rmarkdown [@R-rmarkdown] source.  The source can be found at [LCHF Analysis.Rmd](https://github.com/markconnolly/lchf/blob/master/LCHF%20Analysis.Rmd).
 
@@ -50,10 +50,10 @@ excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
 # and structured spreadsheet and convert the file to a 
 # data frame (which is returned to the caller)
 ingestvo2 <- function(afilename) {
-  nameparts <- unlist(strsplit(basename(afilename)," "))
+  nameparts <- unlist(strsplit(basename(afilename),"[.]"))
   columns <- 
-    data.frame("subj" = as.numeric(nameparts[1]),
-               "testnumber" = as.numeric(nameparts[2]),
+    data.frame("subj" = as.character(nameparts[1]),
+               "testnumber" = as.character(nameparts[2]),
                "testdate" = as.Date(nameparts[3],format="%m%d%y")
               ) 
   sheet <- 
@@ -106,14 +106,16 @@ tail(fuel_long)   # shows the bottom part of the data frame
 ```
 
 ## Predicted calorie source ratio by heartrate
+The percent contribution of fat and carbohydrates are plotted against heartrate.  Plots are faceted by test number and subject to show individual responses across tests.  The plots are created using `ggplot2` [@R-ggplot2].  
+
 ```{r}
 ggplot(data=fuel_long, 
        aes(x=HR, y=pctKcalmin, 
            color=percentage, 
            shape=percentage)) + 
   geom_point() + 
-  geom_smooth() +
-  facet_grid(testnumber ~ subj)
+  geom_smooth(method="loess") +
+  facet_grid(subj ~ testnumber)
 ```
 
 ##  Predicted heartrate based on calorie source with predicted crossover
@@ -125,6 +127,9 @@ crossoverHR50 <- group_by(fuel_long, testnumber, subj, percentage) %>%
                  unnest() %>% 
                  as.data.frame()
 
+knitr::kable(crossoverHR50, 
+             caption = "Predicted heartrate at crossover")
+
 ggplot(data=fuel_long,
        aes(x=pctKcalmin,
            y=HR,
@@ -132,7 +137,7 @@ ggplot(data=fuel_long,
            shape=percentage)) + 
   geom_point() + 
   geom_smooth() +
-  facet_grid(testnumber ~ subj) +
+  facet_grid(subj ~ testnumber) +
   geom_hline(data = crossoverHR50, aes(yintercept = HR), colour="darkgrey") + 
   geom_text(data = crossoverHR50, aes(label=HR, x=0, y=HR), colour="black") +
   coord_flip()
