@@ -12,7 +12,7 @@
 
 <meta name="author" content="Mark Connolly" />
 
-<meta name="date" content="2016-09-07" />
+<meta name="date" content="2016-09-09" />
 
 <title>Data Processing for Low Carb High Fat Diet</title>
 
@@ -71,7 +71,7 @@ code > span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Inf
 <h1 class="title toc-ignore">Data Processing for Low Carb High Fat Diet</h1>
 <h3 class="subtitle"><em>Repeated measures on subjects</em></h3>
 <h4 class="author"><em>Mark Connolly</em></h4>
-<h4 class="date"><em>2016-09-07</em></h4>
+<h4 class="date"><em>2016-09-09</em></h4>
 
 
 <div id="TOC">
@@ -108,24 +108,22 @@ excelfilter &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span c
 <span class="co"># and structured spreadsheet and convert the file to a </span>
 <span class="co"># data frame (which is returned to the caller)</span>
 ingestvo2 &lt;-<span class="st"> </span>function(afilename) {
-  nameparts &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">strsplit</span>(<span class="kw">basename</span>(afilename),<span class="st">&quot;[.]&quot;</span>))
-  columns &lt;-<span class="st"> </span>
+  nameparts &lt;-<span class="st"> </span>afilename %&gt;%<span class="st"> </span><span class="kw">basename</span>() %&gt;%<span class="st"> </span><span class="kw">strsplit</span>(<span class="st">&quot;[.]&quot;</span>) %&gt;%<span class="st"> </span><span class="kw">unlist</span>()
+  columnsfromfilename &lt;-<span class="st"> </span>
 <span class="st">    </span><span class="kw">data.frame</span>(<span class="st">&quot;subj&quot;</span> =<span class="st"> </span><span class="kw">as.character</span>(nameparts[<span class="dv">1</span>]),
                <span class="st">&quot;testnumber&quot;</span> =<span class="st"> </span><span class="kw">as.character</span>(nameparts[<span class="dv">2</span>]),
                <span class="st">&quot;testdate&quot;</span> =<span class="st"> </span><span class="kw">as.Date</span>(nameparts[<span class="dv">3</span>],<span class="dt">format=</span><span class="st">&quot;%m%d%y&quot;</span>)
               ) 
   sheet &lt;-<span class="st"> </span>
-<span class="st">    </span><span class="kw">read_excel</span>(afilename, 
-               <span class="dt">sheet=</span><span class="dv">1</span>, 
-               <span class="dt">skip=</span><span class="dv">4</span>, 
-               <span class="dt">col_names=</span><span class="ot">FALSE</span>)
+<span class="st">    </span><span class="kw">read_excel</span>(afilename, <span class="dt">sheet=</span><span class="dv">1</span>, <span class="dt">skip=</span><span class="dv">4</span>, <span class="dt">col_names=</span><span class="ot">FALSE</span>)
+  
   <span class="kw">names</span>(sheet) &lt;-<span class="st"> </span>
 <span class="st">    </span><span class="kw">trim</span>(<span class="kw">names</span>(<span class="kw">read_excel</span>(afilename, 
                           <span class="dt">sheet=</span><span class="dv">1</span>, 
                           <span class="dt">skip=</span><span class="dv">2</span>, 
                           <span class="dt">col_names=</span><span class="ot">TRUE</span>)))
-  sheet$interval &lt;-<span class="st"> </span><span class="dv">0</span>:(<span class="kw">nrow</span>(sheet) -<span class="st"> </span><span class="dv">1</span>)
-  <span class="kw">return</span>(<span class="kw">cbind</span>(columns,sheet))
+
+  <span class="kw">return</span>(<span class="kw">cbind</span>(columnsfromfilename,sheet))
 }</code></pre></div>
 </div>
 <div id="select-and-combine-excel-source-files" class="section level2">
@@ -143,39 +141,127 @@ vo2data$subj =<span class="st"> </span><span class="kw">as.factor</span>(vo2data
 <h2>Subset the test subject and test number</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fuel &lt;-<span class="st"> </span>
 <span class="st">  </span>vo2data[,<span class="kw">c</span>(<span class="st">&quot;testnumber&quot;</span>,<span class="st">&quot;subj&quot;</span>,<span class="st">&quot;%Fat&quot;</span>,<span class="st">&quot;%Carbs&quot;</span>,<span class="st">&quot;HR&quot;</span>)]
-<span class="kw">head</span>(fuel)</code></pre></div>
-<pre><code>##   testnumber   subj %Fat %Carbs  HR
-## 1      test0 258996 70.8   29.2 142
-## 2      test0 258996 63.7   36.3 146
-## 3      test0 258996 68.2   31.8 149
-## 4      test0 258996 69.4   30.6 151
-## 5      test0 258996 75.7   24.3 151
-## 6      test0 258996 68.7   31.3 153</code></pre>
+knitr::<span class="kw">kable</span>(<span class="kw">head</span>(fuel))</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">testnumber</th>
+<th align="left">subj</th>
+<th align="right">%Fat</th>
+<th align="right">%Carbs</th>
+<th align="right">HR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">70.8</td>
+<td align="right">29.2</td>
+<td align="right">142</td>
+</tr>
+<tr class="even">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">63.7</td>
+<td align="right">36.3</td>
+<td align="right">146</td>
+</tr>
+<tr class="odd">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">68.2</td>
+<td align="right">31.8</td>
+<td align="right">149</td>
+</tr>
+<tr class="even">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">69.4</td>
+<td align="right">30.6</td>
+<td align="right">151</td>
+</tr>
+<tr class="odd">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">75.7</td>
+<td align="right">24.3</td>
+<td align="right">151</td>
+</tr>
+<tr class="even">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">68.7</td>
+<td align="right">31.3</td>
+<td align="right">153</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="restructure-the-data-frame" class="section level2">
 <h2>Restructure the data frame</h2>
-<p>Using the <code>gather</code> <span class="citation">(Wickham <label for="tufte-mn-6" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-6" class="margin-toggle">2016<span class="marginnote">Wickham, Hadley. 2016. <em>Tidyr: Easily Tidy Data with `spread()` and `gather()` Functions</em>. <a href="https://CRAN.R-project.org/package=tidyr" class="uri">https://CRAN.R-project.org/package=tidyr</a>.</span>)</span> function, create a “long” form of the data to be used for the plot. The <code>gather</code> function combines two or more columns such that the column names become factor values in a new column (the key colum) and the values of the designated columns become values in a second new column (the value column). The columns from the source not involved in the gathering remain in place, with values duplicated as needed to fill out the long structure. Functions <code>head</code> and <code>tail</code> are used to convey the structure changes to the data frame, which can be compared to <code>head(fuel)</code> from above. The long form is used for plotting.</p>
+<p>Using the <code>gather</code> <span class="citation">(Wickham <label for="tufte-mn-6" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-6" class="margin-toggle">2016<span class="marginnote">Wickham, Hadley. 2016. <em>Tidyr: Easily Tidy Data with `spread()` and `gather()` Functions</em>. <a href="https://CRAN.R-project.org/package=tidyr" class="uri">https://CRAN.R-project.org/package=tidyr</a>.</span>)</span> function, create a “long” form of the data to be used for the plot. The <code>gather</code> function combines two or more columns such that the column names become factor values in a new column (the key colum) and the values of the designated columns become values in a second new column (the value column). The columns from the source not involved in the gathering remain in place, with values duplicated as needed to fill out the long structure. Functions <code>head</code> is used to convey the structure changes to the data frame, which can be compared to <code>head(fuel)</code> from above. The new structure makes “%Fat” and “%Carbs” factors and their values collapsed into a single variable.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fuel_long &lt;-<span class="st"> </span><span class="kw">gather</span>(fuel,                <span class="co"># source data frame</span>
                     percentage,          <span class="co"># new column name of the key</span>
                     pctKcalmin,          <span class="co"># new column name of the value</span>
                     <span class="kw">c</span>(<span class="st">`</span><span class="dt">%Fat</span><span class="st">`</span>,<span class="st">`</span><span class="dt">%Carbs</span><span class="st">`</span>))  <span class="co"># columns that are sources of</span>
                                          <span class="co"># key names and values.</span>
-<span class="kw">head</span>(fuel_long)   <span class="co"># shows the top part of the data frame</span></code></pre></div>
-<pre><code>##   testnumber   subj  HR percentage pctKcalmin
-## 1      test0 258996 142       %Fat       70.8
-## 2      test0 258996 146       %Fat       63.7
-## 3      test0 258996 149       %Fat       68.2
-## 4      test0 258996 151       %Fat       69.4
-## 5      test0 258996 151       %Fat       75.7
-## 6      test0 258996 153       %Fat       68.7</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tail</span>(fuel_long)   <span class="co"># shows the bottom part of the data frame</span></code></pre></div>
-<pre><code>##     testnumber   subj  HR percentage pctKcalmin
-## 433      test0 990868 182     %Carbs        100
-## 434      test0 990868 183     %Carbs        100
-## 435      test0 990868 183     %Carbs        100
-## 436      test0 990868 184     %Carbs        100
-## 437      test0 990868 185     %Carbs        100
-## 438      test0 990868 185     %Carbs        100</code></pre>
+knitr::<span class="kw">kable</span>(<span class="kw">head</span>(fuel_long))   <span class="co"># shows the top part of the data frame</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">testnumber</th>
+<th align="left">subj</th>
+<th align="right">HR</th>
+<th align="left">percentage</th>
+<th align="right">pctKcalmin</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">142</td>
+<td align="left">%Fat</td>
+<td align="right">70.8</td>
+</tr>
+<tr class="even">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">146</td>
+<td align="left">%Fat</td>
+<td align="right">63.7</td>
+</tr>
+<tr class="odd">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">149</td>
+<td align="left">%Fat</td>
+<td align="right">68.2</td>
+</tr>
+<tr class="even">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">151</td>
+<td align="left">%Fat</td>
+<td align="right">69.4</td>
+</tr>
+<tr class="odd">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">151</td>
+<td align="left">%Fat</td>
+<td align="right">75.7</td>
+</tr>
+<tr class="even">
+<td align="left">test0</td>
+<td align="left">258996</td>
+<td align="right">153</td>
+<td align="left">%Fat</td>
+<td align="right">68.7</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="predicted-calorie-source-ratio-by-heartrate" class="section level2">
 <h2>Predicted calorie source ratio by heartrate</h2>

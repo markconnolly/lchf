@@ -50,24 +50,22 @@ excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
 # and structured spreadsheet and convert the file to a 
 # data frame (which is returned to the caller)
 ingestvo2 <- function(afilename) {
-  nameparts <- unlist(strsplit(basename(afilename),"[.]"))
-  columns <- 
+  nameparts <- afilename %>% basename() %>% strsplit("[.]") %>% unlist()
+  columnsfromfilename <- 
     data.frame("subj" = as.character(nameparts[1]),
                "testnumber" = as.character(nameparts[2]),
                "testdate" = as.Date(nameparts[3],format="%m%d%y")
               ) 
   sheet <- 
-    read_excel(afilename, 
-               sheet=1, 
-               skip=4, 
-               col_names=FALSE)
+    read_excel(afilename, sheet=1, skip=4, col_names=FALSE)
+  
   names(sheet) <- 
     trim(names(read_excel(afilename, 
                           sheet=1, 
                           skip=2, 
                           col_names=TRUE)))
-  sheet$interval <- 0:(nrow(sheet) - 1)
-  return(cbind(columns,sheet))
+
+  return(cbind(columnsfromfilename,sheet))
 }
 ```
 
@@ -90,19 +88,19 @@ vo2data$subj = as.factor(vo2data$subj)
 ```{r}
 fuel <- 
   vo2data[,c("testnumber","subj","%Fat","%Carbs","HR")]
-head(fuel)
+knitr::kable(head(fuel))
 ```
 
 ## Restructure the data frame
-Using the `gather` [@R-tidyr] function, create a "long" form of the data to be used for the plot.  The `gather` function combines two or more columns such that the column names become factor values in a new column (the key colum) and the values of the designated columns become values in a second new column (the value column). The columns from the source not involved in the gathering remain in place, with values duplicated as needed to fill out the long structure. Functions `head` and `tail` are used to convey the structure changes to the data frame, which can be compared to `head(fuel)` from above.  The long form is used for plotting.
+Using the `gather` [@R-tidyr] function, create a "long" form of the data to be used for the plot.  The `gather` function combines two or more columns such that the column names become factor values in a new column (the key colum) and the values of the designated columns become values in a second new column (the value column). The columns from the source not involved in the gathering remain in place, with values duplicated as needed to fill out the long structure. Functions `head` is used to convey the structure changes to the data frame, which can be compared to `head(fuel)` from above.  The new structure makes "%Fat" and "%Carbs" factors and their values collapsed into a single variable.  
+
 ```{r warning=FALSE}
 fuel_long <- gather(fuel,                # source data frame
                     percentage,          # new column name of the key
                     pctKcalmin,          # new column name of the value
                     c(`%Fat`,`%Carbs`))  # columns that are sources of
                                          # key names and values.
-head(fuel_long)   # shows the top part of the data frame
-tail(fuel_long)   # shows the bottom part of the data frame
+knitr::kable(head(fuel_long))   # shows the top part of the data frame
 ```
 
 ## Predicted calorie source ratio by heartrate
