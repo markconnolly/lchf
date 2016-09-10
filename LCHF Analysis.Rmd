@@ -16,14 +16,15 @@ link-citations: yes
 
 ```{r setup, include=FALSE}
 library(knitr)
+library(tufte)
+library(rmarkdown)
+
 library(ggplot2)
 library(readxl)
 library(gdata)
 library(tidyr)
 library(dplyr)
-library(tufte)
 library(magrittr)
-library(rmarkdown)
 # invalidate cache when the tufte version changes
 knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
 options(htmltools.dir.version = FALSE)
@@ -34,6 +35,12 @@ Analysis of collected observations.  Weaving executed code with explanatory text
 This document is translated from rmarkdown [@R-rmarkdown] source.  The source can be found at [LCHF Analysis.Rmd](https://github.com/markconnolly/lchf/blob/master/LCHF%20Analysis.Rmd).
 
 The `%>%` operator will be seen in some of the code.  The package `magrittr` [@R-magrittr] provides this operator, called a pipe, which forwards the result of a preceeding function to a suceeding function in a sinle code stream.  By default, the forwarded object is "piped" into the succeeding function's first parameter slot.  The argument can be moved to other parameter slots in the succeeding call Using the `.` placeholder.  The pipe is used where it improves readability.  A series of functions interspersed with `%>%` should be viewed as pipeline or processing elements, with the output of one function the input to the next.
+
+R uses formulae to define response models.  A formula is the form 
+
+```response variable ~ explanatory variables```
+
+The structure of formulae is well-explained by [@king_r_formulae].
 
 # Crossover
 At the start of the test, fat will predominate as the source of calories.  As the test proceeds and the energy burn rate increases (as indicated by increased heartrate), fat as a source will diminish and carbohydrate as a source will increase.  The crossover graph captures the trends and imputes the heartrate where fat and carbohydrate contribution are equal (the point where carbohydrate will start to become the predominant energy source).
@@ -147,4 +154,22 @@ citPkgs <- c(names(sessionInfo()$otherPkgs), "base")
 write_bib(citPkgs, file="lchf.bib")
 
 ```
+# Heartrate at RER 0.5
+Heartrate at RER 0.5 is the dependent variable.  The hypothesis is that the low carbohydrate/high fat diet will increase the heartrate at RER, with the body becoming using more fat than protien as the testing procedes.
+```{r}
+rer <- choose.files(filters = excelfilter,
+                    caption = "Select rer file",
+                    multi=FALSE) %>%
+       read_excel(sheet=1)
+# make the names more convenient by squeezing out spaces
+names(rer) <- gsub(" ", "", names(rer), fixed=TRUE)
 
+boxplot(rer$RERHR ~ rer$Subject)
+
+rer$Subject <- factor(rer$Subject)
+rer$TestNumber <- factor(rer$TestNumber)
+
+summary(aov(RERHR ~ Error(Subject), data=rer))
+
+
+```
