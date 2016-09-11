@@ -156,6 +156,8 @@ write_bib(citPkgs, file="lchf.bib")
 ```
 # Heartrate at RER 0.5
 Heartrate at RER 0.5 is the dependent variable.  The hypothesis is that the low carbohydrate/high fat diet will increase the heartrate at RER, with the body becoming using more fat than protien as the testing procedes.
+
+Working model for analysis: [@gribble_repeated_2009]
 ```{r}
 rer <- choose.files(filters = excelfilter,
                     caption = "Select rer file",
