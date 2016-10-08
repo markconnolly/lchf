@@ -1,11 +1,22 @@
-counter_factory <- function(x = 0, inc = 1) {
-    first <- TRUE
-    function() {
+new_counter <- function(n = 1, i = 1) {
+  first <- TRUE
+  start = n
+  
+  # list of functions returned in closure
+  list(
+    reset = function(){
+      n <<- start
+      first <<- TRUE
+    },
+    
+    getnext = function() {
       if (first) {
         first <<- FALSE
-        return(x)
+        return(n)
       }
-      x <<- x + inc
-      return(x)
+      n <<- n + i
+      return(n)
     }
-  }
+  )
+}
+
