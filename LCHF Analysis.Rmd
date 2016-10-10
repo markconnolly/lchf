@@ -85,6 +85,8 @@ The collection software includes summary statistics at the sheet end of the shee
 Create a list that contains user-selected files, with each file processed by the `ingestvo2` function.  The data frames in the list are then bound together by row.  This is achieved in code using a pipeline of functions to process the inputs before assigning to the target variable. Note the `%>%` operator.
 
 ```{r}
+excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
+
 vo2data <- 
   choose.files(filters = excelfilter,
                caption = "Select VO2 files to combine") %>%
