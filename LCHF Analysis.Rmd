@@ -63,10 +63,13 @@ ingestvo2 <- function(afilename) {
                "testnumber" = as.character(nameparts[2]),
                "testdate" = as.Date(nameparts[3],format="%m%d%y")
               ) 
-  sheet <- 
-    read_excel(afilename, sheet=1, skip=4, col_names=FALSE)
+  sheet <- # read the data
+    read_excel(afilename, 
+               sheet=1, 
+               skip=4, 
+               col_names=FALSE)
   
-  names(sheet) <- 
+  names(sheet) <- # read the column names
     trim(names(read_excel(afilename, 
                           sheet=1, 
                           skip=2, 
@@ -75,6 +78,8 @@ ingestvo2 <- function(afilename) {
   return(cbind(columnsfromfilename,sheet))
 }
 ```
+## manual preparation
+The collection software includes summary statistics at the sheet end of the sheet. If present, these rows are deleted.
 
 ## Select and combine Excel source files
 Create a list that contains user-selected files, with each file processed by the `ingestvo2` function.  The data frames in the list are then bound together by row.  This is achieved in code using a pipeline of functions to process the inputs before assigning to the target variable. Note the `%>%` operator.
@@ -88,7 +93,8 @@ vo2data <-
 
 vo2data$subj = as.factor(vo2data$subj)
 ```
-
+## Summary statistics
+vo2data[c('subj','testnumber',testdate)]
 
 ## Subset the test subject and test number
 
@@ -163,13 +169,45 @@ rer <- choose.files(filters = excelfilter,
                     caption = "Select rer file",
                     multi=FALSE) %>%
        read_excel(sheet=1)
-# make the names more convenient by squeezing out spaces
+
+# make the names more convenient to use
 names(rer) <- gsub(" ", "", names(rer), fixed=TRUE)
+names(rer) <- gsub("(", "_", names(rer), fixed=TRUE)
+names(rer) <- gsub(")", "", names(rer), fixed=TRUE)
+names(rer) <- gsub("%", "pct", names(rer), fixed=TRUE)
 
-boxplot(rer$RERHR ~ rer$Subject)
+# convert factors to factors
+rer$Subject <- as.factor(rer$Subject)
+rer$TestNumber <- as.factor(rer$TestNumber)
 
-rer$Subject <- factor(rer$Subject)
-rer$TestNumber <- factor(rer$TestNumber)
+summarized <- rer[,c("TestNumber","RERHR",
+                     "MaxRelVO2","MaxAbsVO2",
+                     "BFpctBIA","SFBFpct",
+                     "MoodB4_cm","MoodAfter_cm",
+                     "FatBIA","FatSF")] %>% 
+   group_by(TestNumber) %>%
+   summarise_each(funs(min,mean,median,sd,var,max))
+
+boxplot(rer$RERHR ~ rer$TestNumber)
+
+rer2 <- rer[c("Subject","TestNumber",
+              "RERHR",
+              "MaxRelVO2","MaxAbsVO2",
+              "BFpctBIA","SFBFpct",
+              "MoodB4_cm","MoodAfter_cm",
+              "FatBIA","FatSF")]
+
+rer2_long <- gather(rer2,measurement,obs,RERHR:FatSF)
+
+ggplot(data=rer2_long, aes(x=TestNumber,
+                           y=obs,
+                           color=Subject,
+                           group = Subject)) + 
+  geom_point() + 
+  geom_line() +
+  facet_wrap(~measurement, scales = "free")
+
+
 
 summary(aov(RERHR ~ Error(Subject), data=rer))
 
