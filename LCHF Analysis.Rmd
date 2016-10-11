@@ -199,7 +199,23 @@ rer2 <- rer[c("Subject","TestNumber",
               "MoodB4_cm","MoodAfter_cm",
               "FatBIA","FatSF")]
 
-rer2_long <- gather(rer2,measurement,obs,RERHR:FatSF)
+rer2_long <- 
+  rer[c("Subject","TestNumber",
+        "RERHR",
+        "MaxRelVO2","MaxAbsVO2",
+        "BFpctBIA","SFBFpct",
+        "MoodB4_cm","MoodAfter_cm",
+        "FatBIA","FatSF")]            %>%
+  gather(measurement,obs,RERHR:FatSF)
+
+rer2_long$measurement <- 
+  ordered(rer2_long$measurement, 
+          levels = c("RERHR",
+                     "MaxRelVO2","MaxAbsVO2",
+                     "BFpctBIA","SFBFpct",
+                     "MoodB4_cm","MoodAfter_cm",
+                     "FatBIA","FatSF"))
+
 
 ggplot(data=rer2_long, aes(x=TestNumber,
                            y=obs,
