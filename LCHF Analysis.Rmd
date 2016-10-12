@@ -167,6 +167,8 @@ Heartrate at RER 0.5 is the dependent variable.  The hypothesis is that the low 
 
 Working model for analysis: [@gribble_repeated_2009]
 ```{r}
+excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
+
 rer <- choose.files(filters = excelfilter,
                     caption = "Select rer file",
                     multi=FALSE) %>%
@@ -181,16 +183,6 @@ names(rer) <- gsub("%", "pct", names(rer), fixed=TRUE)
 # convert factors to factors
 rer$Subject <- as.factor(rer$Subject)
 rer$TestNumber <- as.factor(rer$TestNumber)
-
-summarized <- rer[,c("TestNumber","RERHR",
-                     "MaxRelVO2","MaxAbsVO2",
-                     "BFpctBIA","SFBFpct",
-                     "MoodB4_cm","MoodAfter_cm",
-                     "FatBIA","FatSF")] %>% 
-   group_by(TestNumber) %>%
-   summarise_each(funs(min,mean,median,sd,var,max))
-
-boxplot(rer$RERHR ~ rer$TestNumber)
 
 rer2 <- rer[c("Subject","TestNumber",
               "RERHR",
@@ -216,14 +208,21 @@ rer2_long$measurement <-
                      "MoodB4_cm","MoodAfter_cm",
                      "FatBIA","FatSF"))
 
+scales <- "fixed";columns <- c("RERHR")
+scales <- "free";columns <- c("MaxRelVO2","MaxAbsVO2")
+scales <- "fixed";columns <- c("BFpctBIA","SFBFpct")
+scales <- "fixed";columns <- c("MoodB4_cm","MoodAfter_cm")
+scales <- "fixed";columns <- c("FatBIA","FatSF")
 
-ggplot(data=rer2_long, aes(x=TestNumber,
-                           y=obs,
-                           color=Subject,
-                           group = Subject)) + 
+rer2_long %>% 
+  subset(measurement %in% columns) %>% 
+  ggplot(data=., aes(x=TestNumber,
+                     y=obs,
+                     color=Subject,
+                     group = Subject)) + 
   geom_point() + 
   geom_line() +
-  facet_wrap(~measurement, scales = "free")
+  facet_wrap(~measurement, scales = scales)
 
 
 
