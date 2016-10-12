@@ -43,7 +43,7 @@ R uses formulae to define response models.  A formula is the form
 The structure of formulae is well-explained by [@king_r_formulae].
 
 # Plots of observation variables
-
+## Data preparation
 ```{r}
 excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
 
@@ -85,7 +85,11 @@ rer2_long$measurement <-
                      "BFpctBIA","SFBFpct",
                      "MoodB4_cm","MoodAfter_cm",
                      "FatBIA","FatSF"))
+```
 
+## RER Heartrate
+
+```{r}
 scales <- "fixed";columns <- c("RERHR")
 rer2_long %>% 
   subset(measurement %in% columns) %>% 
@@ -96,8 +100,11 @@ rer2_long %>%
   geom_point() + 
   geom_line() +
   facet_wrap(~measurement, scales = scales)
+```
 
+## VO2 Max
 
+```{r}
 scales <- "free";columns <- c("MaxRelVO2","MaxAbsVO2")
 rer2_long %>% 
   subset(measurement %in% columns) %>% 
@@ -108,32 +115,11 @@ rer2_long %>%
   geom_point() + 
   geom_line() +
   facet_wrap(~measurement, scales = scales)
+```
 
+## Body fat
 
-scales <- "fixed";columns <- c("BFpctBIA","SFBFpct")
-rer2_long %>% 
-  subset(measurement %in% columns) %>% 
-  ggplot(data=., aes(x=TestNumber,
-                     y=obs,
-                     color=Subject,
-                     group = Subject)) + 
-  geom_point() + 
-  geom_line() +
-  facet_wrap(~measurement, scales = scales)
-
-
-scales <- "fixed";columns <- c("MoodB4_cm","MoodAfter_cm")
-rer2_long %>% 
-  subset(measurement %in% columns) %>% 
-  ggplot(data=., aes(x=TestNumber,
-                     y=obs,
-                     color=Subject,
-                     group = Subject)) + 
-  geom_point() + 
-  geom_line() +
-  facet_wrap(~measurement, scales = scales)
-
-
+```{r}
 scales <- "fixed";columns <- c("FatBIA","FatSF")
 rer2_long %>% 
   subset(measurement %in% columns) %>% 
@@ -144,14 +130,40 @@ rer2_long %>%
   geom_point() + 
   geom_line() +
   facet_wrap(~measurement, scales = scales)
+```
 
+## Percent body fat
 
+```{r}
+scales <- "fixed";columns <- c("BFpctBIA","SFBFpct")
+rer2_long %>% 
+  subset(measurement %in% columns) %>% 
+  ggplot(data=., aes(x=TestNumber,
+                     y=obs,
+                     color=Subject,
+                     group = Subject)) + 
+  geom_point() + 
+  geom_line() +
+  facet_wrap(~measurement, scales = scales)
+```
 
+## Mood ring readings
 
-
+```{r}
+scales <- "fixed";columns <- c("MoodB4_cm","MoodAfter_cm")
+rer2_long %>% 
+  subset(measurement %in% columns) %>% 
+  ggplot(data=., aes(x=TestNumber,
+                     y=obs,
+                     color=Subject,
+                     group = Subject)) + 
+  geom_point() + 
+  geom_line() +
+  facet_wrap(~measurement, scales = scales)
 ```
 
 # Heartrate at RER 0.5
+
 For later
 
 Heartrate at RER 0.5 is the dependent variable.  The hypothesis is that the low carbohydrate/high fat diet will increase the heartrate at RER, with the body becoming using more fat than protien as the testing procedes.
