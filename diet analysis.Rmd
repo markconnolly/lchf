@@ -1,0 +1,73 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(tufte)
+library(rmarkdown)
+
+library(ggplot2)
+library(readxl)
+library(gdata)
+library(tidyr)
+library(dplyr)
+library(magrittr)
+```
+## import data
+
+```{r}
+excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
+
+diet <- choose.files(filters = excelfilter,
+                    caption = "Select diet file",
+                    multi=FALSE) %>%
+       read_excel(sheet=1)
+
+diet$Subject <- as.factor(diet$Subject)
+diet$week <- as.factor(diet$week)
+diet$Fatpct <- diet$Fatpct * 100
+diet$Carbpct <- diet$Carbpct * 100
+diet$Proteinpct <- diet$Proteinpct * 100
+diet
+```
+
+## explore diet
+
+```{r}
+diet %>% 
+  ggplot(data=., aes(x=week,
+                     y=Fatpct,
+                     color=Subject)) + 
+  geom_boxplot()
+
+```
+
+```{r}
+diet %>% 
+  ggplot(data=., aes(x=week,
+                     y=Carbpct,
+                     color=Subject)) + 
+  geom_boxplot()
+
+```
+
+```{r}
+diet %>% 
+  ggplot(data=., aes(x=week,
+                     y=Proteinpct,
+                     color=Subject)) + 
+  geom_boxplot()
+
+```
+
+## transform data
+
+```{r}
+diet %>% 
+  group_by(Subject,week) %>%
+  summarise_each(funs(sum), Fat, Carb, Protein, kcal)
+
+```
+
