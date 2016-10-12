@@ -87,11 +87,54 @@ rer2_long$measurement <-
                      "FatBIA","FatSF"))
 
 scales <- "fixed";columns <- c("RERHR")
-scales <- "free";columns <- c("MaxRelVO2","MaxAbsVO2")
-scales <- "fixed";columns <- c("BFpctBIA","SFBFpct")
-scales <- "fixed";columns <- c("MoodB4_cm","MoodAfter_cm")
-scales <- "fixed";columns <- c("FatBIA","FatSF")
+rer2_long %>% 
+  subset(measurement %in% columns) %>% 
+  ggplot(data=., aes(x=TestNumber,
+                     y=obs,
+                     color=Subject,
+                     group = Subject)) + 
+  geom_point() + 
+  geom_line() +
+  facet_wrap(~measurement, scales = scales)
 
+
+scales <- "free";columns <- c("MaxRelVO2","MaxAbsVO2")
+rer2_long %>% 
+  subset(measurement %in% columns) %>% 
+  ggplot(data=., aes(x=TestNumber,
+                     y=obs,
+                     color=Subject,
+                     group = Subject)) + 
+  geom_point() + 
+  geom_line() +
+  facet_wrap(~measurement, scales = scales)
+
+
+scales <- "fixed";columns <- c("BFpctBIA","SFBFpct")
+rer2_long %>% 
+  subset(measurement %in% columns) %>% 
+  ggplot(data=., aes(x=TestNumber,
+                     y=obs,
+                     color=Subject,
+                     group = Subject)) + 
+  geom_point() + 
+  geom_line() +
+  facet_wrap(~measurement, scales = scales)
+
+
+scales <- "fixed";columns <- c("MoodB4_cm","MoodAfter_cm")
+rer2_long %>% 
+  subset(measurement %in% columns) %>% 
+  ggplot(data=., aes(x=TestNumber,
+                     y=obs,
+                     color=Subject,
+                     group = Subject)) + 
+  geom_point() + 
+  geom_line() +
+  facet_wrap(~measurement, scales = scales)
+
+
+scales <- "fixed";columns <- c("FatBIA","FatSF")
 rer2_long %>% 
   subset(measurement %in% columns) %>% 
   ggplot(data=., aes(x=TestNumber,
@@ -104,15 +147,19 @@ rer2_long %>%
 
 
 
-summary(aov(RERHR ~ Error(Subject), data=rer))
 
 
 ```
 
 # Heartrate at RER 0.5
+For later
+
 Heartrate at RER 0.5 is the dependent variable.  The hypothesis is that the low carbohydrate/high fat diet will increase the heartrate at RER, with the body becoming using more fat than protien as the testing procedes.
 
 Working model for analysis: [@gribble_repeated_2009]
+
+`summary(aov(RERHR ~ Error(Subject), data=rer))`
+
 
 ```{r include=FALSE}
 # References
