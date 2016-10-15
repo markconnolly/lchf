@@ -22,8 +22,9 @@ excelfilter <- matrix(c("Excel", "*.xls*"), ncol=2)
 
 diet <- choose.files(filters = excelfilter,
                     caption = "Select diet file",
-                    multi=FALSE) %>%
-       read_excel(sheet=1)
+                    multi=FALSE)  %T>%
+        print() %>%
+        read_excel(sheet=1)
 
 diet$Subject <- as.factor(diet$Subject)
 diet$week <- as.factor(diet$week)
@@ -32,6 +33,17 @@ diet$Carbpct <- diet$Carbpct * 100
 diet$Proteinpct <- diet$Proteinpct * 100
 diet
 ```
+
+```{r}
+diet_long <- gather(diet, measurement, obs, Fat:kcal)
+diet_long %>% 
+  subset(measurement %in% c("Carbpct","Fatpct","Proteinpct")) %>%
+  ggplot(data=., aes(x=week, y=obs, color=Subject)) + 
+    geom_boxplot() + 
+    facet_wrap(~measurement, scale="free",ncol=1)
+```
+
+
 
 ## Macronutrient Diet Composition
 
