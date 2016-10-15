@@ -1,5 +1,5 @@
 ---
-title: "R Notebook"
+title: "Diet Analysis Notebook"
 output: html_notebook
 ---
 
@@ -33,20 +33,20 @@ diet$Proteinpct <- diet$Proteinpct * 100
 diet
 ```
 
-## explore diet
+## Macronutrient Diet Composition
+
+Diet composition at baseline and during the testing period.  Distribution for each week.
 
 ```{r}
-diet %>% 
-  ggplot(data=., aes(x=week,
-                     y=Fatpct,
-                     color=Subject)) + 
+ggplot(data=diet, aes(x=week,
+                      y=Fatpct,
+                      color=Subject)) + 
   geom_boxplot()
 
 ```
 
 ```{r}
-diet %>% 
-  ggplot(data=., aes(x=week,
+ggplot(data=diet, aes(x=week,
                      y=Carbpct,
                      color=Subject)) + 
   geom_boxplot()
@@ -54,15 +54,14 @@ diet %>%
 ```
 
 ```{r}
-diet %>% 
-  ggplot(data=., aes(x=week,
+ggplot(data=diet, aes(x=week,
                      y=Proteinpct,
                      color=Subject)) + 
   geom_boxplot()
 
 ```
 
-## transform data
+## Week-to-week diet composition
 
 ```{r}
 diet %>% 
