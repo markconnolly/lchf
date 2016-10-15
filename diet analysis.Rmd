@@ -40,7 +40,7 @@ diet_long %>%
   subset(measurement %in% c("Carbpct","Fatpct","Proteinpct")) %>%
   ggplot(data=., aes(x=week, y=obs, color=Subject)) + 
     geom_boxplot() + 
-    facet_wrap(~measurement, scale="free",ncol=1)
+    facet_wrap(~measurement, scale="free")
 ```
 
 
