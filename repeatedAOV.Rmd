@@ -83,13 +83,13 @@ anova(lme.model)
 ### Multivariate approach using lm() / mlm()
 1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
 ```{r}
-obs.matrix <- with(obs, # grabs stuf from the obs data frame
+obs.matrix <- with(obs, # data from obs data frame
                     cbind(
-                      MEPHR[TestNumber=="0"], # gets the subject observations for the base line
-                      MEPHR[TestNumber=="1"], # gets the subject observations for test 1
-                      MEPHR[TestNumber=="2"], #
+                      MEPHR[TestNumber=="0"], # subject observations baseline
+                      MEPHR[TestNumber=="1"], # subject observations test 1
+                      MEPHR[TestNumber=="2"], # etc
                       MEPHR[TestNumber=="3"]
-                      ) # cbind is column bind, the rows are flipped to columns in the matrix
+                      ) # cbind column bind, rows are flipped to columns
                   )
 # set row and column identities
 rownames(obs.matrix) <- levels(obs$Subject)
