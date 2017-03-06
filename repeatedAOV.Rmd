@@ -43,9 +43,17 @@ require(ggplot2)
 ### Prepare the data
 ```{r}
 obs <- read_csv("mep_observations.csv")
+
+#sort data to keep the factors ordered for a later matrix
 obs <- obs[order(obs$Subject),]
+
 obs$Subject <- as.factor(obs$Subject)
 obs$TestNumber <- as.factor(obs$TestNumber)
+
+#get rid of some of the columns (better privacy)
+obs$TestDate <- NULL
+obs$Age <- NULL
+
 kable(obs)
 ```
 ## Analysis of variance
@@ -97,4 +105,22 @@ mlm.model
 
 ```
 
-The coefficients are equal to the means across subjects for each test.
+The coefficients are equal to the means across subjects at each test.
+
+3. Create a set of factors.
+```{r}
+rfactor <- as.factor(levels(obs$TestNumber))
+rfactor
+```
+
+4. Define a new anova model object ```mlm.model.aov```.
+```{r}
+mlm.model.aov <- Anova(mlm.model, 
+                       idata = data.frame(rfactor),
+                       idesign = ~rfactor, 
+                       type = "III")
+
+summary(mlm.model.aov, 
+        multivariate = FALSE) # don't show multivariate tests
+```
+
