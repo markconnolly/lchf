@@ -115,7 +115,7 @@ rfactor
 
 4. Define a new anova model object ```mlm.model.aov```.
 ```{r}
-mlm.model.aov <- Anova(mlm.model, 
+mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
                        idata = data.frame(rfactor),
                        idesign = ~rfactor, 
                        type = "III")
