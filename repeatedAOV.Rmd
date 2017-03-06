@@ -41,12 +41,14 @@ library(magrittr)
 require(ggplot2)
 ```
 ### Prepare the data
+Read the data from the CSV file (which was copied and pasted from the source Excel spreadsheet).  Sort the data by subject so things will line up later on.  Remove the unneeded columns (not critical to the process).
 ```{r}
 obs <- read_csv("mep_observations.csv")
 
 #sort data to keep the factors ordered for a later matrix
 obs <- obs[order(obs$Subject),]
 
+# these models work with factors
 obs$Subject <- as.factor(obs$Subject)
 obs$TestNumber <- as.factor(obs$TestNumber)
 
