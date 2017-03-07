@@ -2,23 +2,15 @@
 title: "Repeated Measures Analysis of Variance"
 output: html_notebook
 ---
-# Repeated measures analysis of variance
-## Cheatsheet
-A chunk is a collection of code delimited by 
-```{r}
-    # no code in this here comment
-    a <- 1 # a little assignment
-    a      # show a as output below the chunk
-```
-- run all chunks in the document:                 Ctrl+Alt+r
-- run current chunk (where the caret is):         Ctrl+Shift+enter
-- produce a document from the source and hunks:   Ctrl+Shift+K
+# Repeated measures analysis of variance for low carb high fat diet
+The methodology comes from https://gribblelab.wordpress.com/2009/03/09/repeated-measures-anova-using-r/
 
 
-## Low carb high fat diet
+## Load the packages that will be used
 Load the various packages.
 
 ```{r setup}
+
 # packages for analysis of repeated measures
 library(nlme)
 library(car)
@@ -33,14 +25,13 @@ library(readr)
 # data manipulation
 library(tidyr)
 library(dplyr)
+library(tibble)
 
 # pipelining commands
 library(magrittr)
 
-# nice graphs
-require(ggplot2)
 ```
-### Prepare the data
+## Prepare the data
 Read the data from the CSV file (which was copied and pasted from the source Excel spreadsheet).  Sort the data by subject so things will line up later on.  Remove the unneeded columns (not critical to the process).
 ```{r}
 obs <- read_csv("mep_observations.csv")
@@ -51,19 +42,20 @@ obs <- obs[order(obs$Subject),]
 # these models work with factors
 obs$Subject <- as.factor(obs$Subject)
 obs$TestNumber <- as.factor(obs$TestNumber)
+obs <- as_tibble(obs)
 
-#get rid of some of the columns (better privacy)
-obs$TestDate <- NULL
-obs$Age <- NULL
-
-kable(obs)
+obs
 ```
-## Analysis of variance
+
+
+
+
+
+
+## Analysis of variance MEP HR
 - The dependent variable is ```MEPHR```.
 - The test subject is ```Subject```.
 - The factor is ```TestNumber```.
-
-The methodology comes from https://gribblelab.wordpress.com/2009/03/09/repeated-measures-anova-using-r/
 
 ### Univariate with aov()
 ```{r}
@@ -91,6 +83,300 @@ obs.matrix <- with(obs, # data from obs data frame
                       MEPHR[TestNumber=="1"], # subject observations test 1
                       MEPHR[TestNumber=="2"], # etc
                       MEPHR[TestNumber=="3"]
+                      ) # cbind column bind, rows are flipped to columns
+                  )
+# set row and column identities
+rownames(obs.matrix) <- levels(obs$Subject)
+colnames(obs.matrix) <- levels(obs$TestNumber)
+
+# display the matrix
+obs.matrix
+```
+2. Create a multivariate linear model from the matrix.
+```{r}
+mlm.model <- lm(obs.matrix ~ 1)
+mlm.model
+
+```
+
+The coefficients are equal to the means across subjects at each test.
+
+3. Create a set of factors.
+```{r}
+rfactor <- as.factor(levels(obs$TestNumber))
+rfactor
+```
+
+4. Define a new anova model object ```mlm.model.aov```.
+```{r}
+mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
+                       idata = data.frame(rfactor),
+                       idesign = ~rfactor, 
+                       type = "III")
+
+summary(mlm.model.aov, 
+        multivariate = FALSE) # don't show multivariate tests
+```
+
+
+
+
+
+
+
+## Analysis of variance Weight
+- The dependent variable is ```Weight```.
+- The test subject is ```Subject```.
+- The factor is ```TestNumber```.
+
+### Univariate with aov()
+```{r}
+aov.model <- aov(Weight ~ TestNumber + Error(Subject/TestNumber), data=obs)
+summary(aov.model)
+```
+### Univariate approach using lme()
+This method fits a linear mixed-effects model.
+```{r}
+lme.model <- lme(Weight ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
+summary(lme.model)
+```
+
+Display F- and p-values for the factor effect.
+```{r}
+anova(lme.model)
+```
+
+### Multivariate approach using lm() / mlm()
+1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
+```{r}
+obs.matrix <- with(obs, # data from obs data frame
+                    cbind(
+                      Weight[TestNumber=="0"], # subject observations baseline
+                      Weight[TestNumber=="1"], # subject observations test 1
+                      Weight[TestNumber=="2"], # etc
+                      Weight[TestNumber=="3"]
+                      ) # cbind column bind, rows are flipped to columns
+                  )
+# set row and column identities
+rownames(obs.matrix) <- levels(obs$Subject)
+colnames(obs.matrix) <- levels(obs$TestNumber)
+
+# display the matrix
+obs.matrix
+```
+2. Create a multivariate linear model from the matrix.
+```{r}
+mlm.model <- lm(obs.matrix ~ 1)
+mlm.model
+
+```
+
+The coefficients are equal to the means across subjects at each test.
+
+3. Create a set of factors.
+```{r}
+rfactor <- as.factor(levels(obs$TestNumber))
+rfactor
+```
+
+4. Define a new anova model object ```mlm.model.aov```.
+```{r}
+mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
+                       idata = data.frame(rfactor),
+                       idesign = ~rfactor, 
+                       type = "III")
+
+summary(mlm.model.aov, 
+        multivariate = FALSE) # don't show multivariate tests
+```
+
+
+
+
+
+
+
+
+## Analysis of variance MaxRelVO2
+- The dependent variable is ```MaxRelVO2```.
+- The test subject is ```Subject```.
+- The factor is ```TestNumber```.
+
+### Univariate with aov()
+```{r}
+aov.model <- aov(MaxRelVO2 ~ TestNumber + Error(Subject/TestNumber), data=obs)
+summary(aov.model)
+```
+### Univariate approach using lme()
+This method fits a linear mixed-effects model.
+```{r}
+lme.model <- lme(MaxRelVO2 ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
+summary(lme.model)
+```
+
+Display F- and p-values for the factor effect.
+```{r}
+anova(lme.model)
+```
+
+### Multivariate approach using lm() / mlm()
+1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
+```{r}
+obs.matrix <- with(obs, # data from obs data frame
+                    cbind(
+                      MaxRelVO2[TestNumber=="0"], # subject observations baseline
+                      MaxRelVO2[TestNumber=="1"], # subject observations test 1
+                      MaxRelVO2[TestNumber=="2"], # etc
+                      MaxRelVO2[TestNumber=="3"]
+                      ) # cbind column bind, rows are flipped to columns
+                  )
+# set row and column identities
+rownames(obs.matrix) <- levels(obs$Subject)
+colnames(obs.matrix) <- levels(obs$TestNumber)
+
+# display the matrix
+obs.matrix
+```
+2. Create a multivariate linear model from the matrix.
+```{r}
+mlm.model <- lm(obs.matrix ~ 1)
+mlm.model
+
+```
+
+The coefficients are equal to the means across subjects at each test.
+
+3. Create a set of factors.
+```{r}
+rfactor <- as.factor(levels(obs$TestNumber))
+rfactor
+```
+
+4. Define a new anova model object ```mlm.model.aov```.
+```{r}
+mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
+                       idata = data.frame(rfactor),
+                       idesign = ~rfactor, 
+                       type = "III")
+
+summary(mlm.model.aov, 
+        multivariate = FALSE) # don't show multivariate tests
+```
+
+
+
+
+
+
+
+
+
+## Analysis of variance FatBIA
+- The dependent variable is ```FatBIA```.
+- The test subject is ```Subject```.
+- The factor is ```TestNumber```.
+
+### Univariate with aov()
+```{r}
+aov.model <- aov(FatBIA ~ TestNumber + Error(Subject/TestNumber), data=obs)
+summary(aov.model)
+```
+### Univariate approach using lme()
+This method fits a linear mixed-effects model.
+```{r}
+lme.model <- lme(FatBIA ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
+summary(lme.model)
+```
+
+Display F- and p-values for the factor effect.
+```{r}
+anova(lme.model)
+```
+
+### Multivariate approach using lm() / mlm()
+1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
+```{r}
+obs.matrix <- with(obs, # data from obs data frame
+                    cbind(
+                      FatBIA[TestNumber=="0"], # subject observations baseline
+                      FatBIA[TestNumber=="1"], # subject observations test 1
+                      FatBIA[TestNumber=="2"], # etc
+                      FatBIA[TestNumber=="3"]
+                      ) # cbind column bind, rows are flipped to columns
+                  )
+# set row and column identities
+rownames(obs.matrix) <- levels(obs$Subject)
+colnames(obs.matrix) <- levels(obs$TestNumber)
+
+# display the matrix
+obs.matrix
+```
+2. Create a multivariate linear model from the matrix.
+```{r}
+mlm.model <- lm(obs.matrix ~ 1)
+mlm.model
+
+```
+
+The coefficients are equal to the means across subjects at each test.
+
+3. Create a set of factors.
+```{r}
+rfactor <- as.factor(levels(obs$TestNumber))
+rfactor
+```
+
+4. Define a new anova model object ```mlm.model.aov```.
+```{r}
+mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
+                       idata = data.frame(rfactor),
+                       idesign = ~rfactor, 
+                       type = "III")
+
+summary(mlm.model.aov, 
+        multivariate = FALSE) # don't show multivariate tests
+```
+
+
+
+
+
+
+
+
+
+
+## Analysis of variance FatSF
+- The dependent variable is ```FatSF```.
+- The test subject is ```Subject```.
+- The factor is ```TestNumber```.
+
+### Univariate with aov()
+```{r}
+aov.model <- aov(FatSF ~ TestNumber + Error(Subject/TestNumber), data=obs)
+summary(aov.model)
+```
+### Univariate approach using lme()
+This method fits a linear mixed-effects model.
+```{r}
+lme.model <- lme(FatSF ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
+summary(lme.model)
+```
+
+Display F- and p-values for the factor effect.
+```{r}
+anova(lme.model)
+```
+
+### Multivariate approach using lm() / mlm()
+1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
+```{r}
+obs.matrix <- with(obs, # data from obs data frame
+                    cbind(
+                      FatSF[TestNumber=="0"], # subject observations baseline
+                      FatSF[TestNumber=="1"], # subject observations test 1
+                      FatSF[TestNumber=="2"], # etc
+                      FatSF[TestNumber=="3"]
                       ) # cbind column bind, rows are flipped to columns
                   )
 # set row and column identities
