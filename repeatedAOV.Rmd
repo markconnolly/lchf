@@ -30,6 +30,9 @@ library(tibble)
 # pipelining commands
 library(magrittr)
 
+# plots
+library(ggplot2)
+
 ```
 ## Prepare the data
 Read the data from the CSV file (which was copied and pasted from the source Excel spreadsheet).  Sort the data by subject so things will line up later on.  Remove the unneeded columns (not critical to the process).
@@ -412,3 +415,97 @@ summary(mlm.model.aov,
         multivariate = FALSE) # don't show multivariate tests
 ```
 
+
+
+
+
+
+----
+## Boxplots
+A little manipulation of the data frame to make the x-axis label appropriately.
+```{r}
+names(obs)[2] <- "Week"
+levels(obs$Week) <- c("Baseline", "Week1", "Week2", "Week3")
+
+```
+
+
+
+
+### MEP HR
+```{r}
+aboxplot <- ggplot(data=obs, aes(x=Week,y=MEPHR)) + 
+  geom_boxplot() +
+  ylim(120,200) +
+  geom_segment(x=3,y=185,xend=4,yend=185) +
+  annotate(geom="text", label="p=0.0290", x=3.5, y=188) +
+  geom_segment(x=1,y=195,xend=4,yend=195) +
+  annotate(geom="text", label="p=0.2031", x=1.5, y=198)
+
+aboxplot
+
+```
+
+
+
+
+### Weight
+```{r}
+aboxplot <- ggplot(data=obs, aes(x=Week,y=Weight)) + 
+  geom_boxplot() 
+#  ylim(30,90) + 
+#  geom_segment(x=1,y=75,xend=2,yend=75) +
+#  annotate(geom="text", label="p=0.0290", x=1.5, y=78) +
+#  geom_segment(x=1,y=85,xend=4,yend=85) +
+#  annotate(geom="text", label="p=0.2031", x=1.5, y=88)
+
+aboxplot
+
+```
+
+
+
+### MaxRelVO2
+```{r}
+aboxplot <- ggplot(data=obs, aes(x=Week,y=MaxRelVO2)) + 
+  geom_boxplot() + 
+  ylim(30,90) + 
+  geom_segment(x=1,y=75,xend=2,yend=75) +
+  annotate(geom="text", label="p=0.0455", x=1.5, y=78) +
+  geom_segment(x=1,y=85,xend=4,yend=85) +
+  annotate(geom="text", label="p=0.2375", x=1.5, y=88)
+
+aboxplot
+```
+
+
+
+### FatBIA 
+```{r}
+aboxplot <- ggplot(data=obs, aes(x=Week,y=FatBIA)) + 
+  geom_boxplot() 
+#  ylim(30,90) + 
+#  geom_segment(x=1,y=75,xend=2,yend=75) +
+#  annotate(geom="text", label="p=0.0290", x=1.5, y=78) +
+#  geom_segment(x=1,y=85,xend=4,yend=85) +
+#  annotate(geom="text", label="p=0.2031", x=1.5, y=88)
+
+aboxplot
+
+```
+
+
+
+### FatSF
+```{r}
+aboxplot <- ggplot(data=obs, aes(x=Week,y=FatSF)) + 
+  geom_boxplot()
+#  ylim(30,90) + 
+#  geom_segment(x=1,y=75,xend=2,yend=75) +
+#  annotate(geom="text", label="p=0.0290", x=1.5, y=78) +
+#  geom_segment(x=1,y=85,xend=4,yend=85) +
+#  annotate(geom="text", label="p=0.2031", x=1.5, y=88)
+
+aboxplot
+
+```
