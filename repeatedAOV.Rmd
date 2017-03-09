@@ -1,6 +1,8 @@
 ---
 title: "Repeated Measures Analysis of Variance"
-output: html_notebook
+output: 
+  html_notebook:
+    fig_caption: yes
 ---
 # Repeated measures analysis of variance for low carb high fat diet
 The methodology comes from https://gribblelab.wordpress.com/2009/03/09/repeated-measures-anova-using-r/
@@ -17,6 +19,7 @@ library(car)
 
 # document definition and construction
 library(knitr)
+opts_knit$set(eval.after = "fig.cap")
 library(rmarkdown)
 
 #reading and writing files of various types (in this case, csv and text files)
@@ -61,25 +64,25 @@ obs
 - The factor is ```TestNumber```.
 
 ### Univariate with aov()
-```{r}
+```{r fig.cap = "MEP HR"}
 aov.model <- aov(MEPHR ~ TestNumber + Error(Subject/TestNumber), data=obs)
 summary(aov.model)
 ```
 ### Univariate approach using lme()
 This method fits a linear mixed-effects model.
-```{r}
+```{r fig.cap = "MEP HR"}
 lme.model <- lme(MEPHR ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
 summary(lme.model)
 ```
 
 Display F- and p-values for the factor effect.
-```{r}
+```{r fig.cap = "MEP HR"}
 anova(lme.model)
 ```
 
 ### Multivariate approach using lm() / mlm()
 1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
-```{r}
+```{r fig.cap = "MEP HR"}
 obs.matrix <- with(obs, # data from obs data frame
                     cbind(
                       MEPHR[TestNumber=="0"], # subject observations baseline
@@ -96,7 +99,7 @@ colnames(obs.matrix) <- levels(obs$TestNumber)
 obs.matrix
 ```
 2. Create a multivariate linear model from the matrix.
-```{r}
+```{r fig.cap = "MEP HR"}
 mlm.model <- lm(obs.matrix ~ 1)
 mlm.model
 
@@ -105,13 +108,13 @@ mlm.model
 The coefficients are equal to the means across subjects at each test.
 
 3. Create a set of factors.
-```{r}
+```{r fig.cap = "MEP HR"}
 rfactor <- as.factor(levels(obs$TestNumber))
 rfactor
 ```
 
 4. Define a new anova model object ```mlm.model.aov```.
-```{r}
+```{r fig.cap = "MEP HR"}
 mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
                        idata = data.frame(rfactor),
                        idesign = ~rfactor, 
@@ -134,24 +137,28 @@ summary(mlm.model.aov,
 
 ### Univariate with aov()
 ```{r}
+
 aov.model <- aov(Weight ~ TestNumber + Error(Subject/TestNumber), data=obs)
 summary(aov.model)
 ```
 ### Univariate approach using lme()
 This method fits a linear mixed-effects model.
 ```{r}
+
 lme.model <- lme(Weight ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
 summary(lme.model)
 ```
 
 Display F- and p-values for the factor effect.
 ```{r}
+
 anova(lme.model)
 ```
 
 ### Multivariate approach using lm() / mlm()
 1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
 ```{r}
+
 obs.matrix <- with(obs, # data from obs data frame
                     cbind(
                       Weight[TestNumber=="0"], # subject observations baseline
@@ -169,6 +176,7 @@ obs.matrix
 ```
 2. Create a multivariate linear model from the matrix.
 ```{r}
+
 mlm.model <- lm(obs.matrix ~ 1)
 mlm.model
 
@@ -178,12 +186,14 @@ The coefficients are equal to the means across subjects at each test.
 
 3. Create a set of factors.
 ```{r}
+
 rfactor <- as.factor(levels(obs$TestNumber))
 rfactor
 ```
 
 4. Define a new anova model object ```mlm.model.aov```.
 ```{r}
+
 mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
                        idata = data.frame(rfactor),
                        idesign = ~rfactor, 
@@ -207,24 +217,28 @@ summary(mlm.model.aov,
 
 ### Univariate with aov()
 ```{r}
+
 aov.model <- aov(MaxRelVO2 ~ TestNumber + Error(Subject/TestNumber), data=obs)
 summary(aov.model)
 ```
 ### Univariate approach using lme()
 This method fits a linear mixed-effects model.
 ```{r}
+
 lme.model <- lme(MaxRelVO2 ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
 summary(lme.model)
 ```
 
 Display F- and p-values for the factor effect.
 ```{r}
+
 anova(lme.model)
 ```
 
 ### Multivariate approach using lm() / mlm()
 1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
 ```{r}
+
 obs.matrix <- with(obs, # data from obs data frame
                     cbind(
                       MaxRelVO2[TestNumber=="0"], # subject observations baseline
@@ -242,6 +256,7 @@ obs.matrix
 ```
 2. Create a multivariate linear model from the matrix.
 ```{r}
+
 mlm.model <- lm(obs.matrix ~ 1)
 mlm.model
 
@@ -251,12 +266,14 @@ The coefficients are equal to the means across subjects at each test.
 
 3. Create a set of factors.
 ```{r}
+
 rfactor <- as.factor(levels(obs$TestNumber))
 rfactor
 ```
 
 4. Define a new anova model object ```mlm.model.aov```.
 ```{r}
+
 mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
                        idata = data.frame(rfactor),
                        idesign = ~rfactor, 
@@ -281,24 +298,28 @@ summary(mlm.model.aov,
 
 ### Univariate with aov()
 ```{r}
+
 aov.model <- aov(FatBIA ~ TestNumber + Error(Subject/TestNumber), data=obs)
 summary(aov.model)
 ```
 ### Univariate approach using lme()
 This method fits a linear mixed-effects model.
 ```{r}
+
 lme.model <- lme(FatBIA ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
 summary(lme.model)
 ```
 
 Display F- and p-values for the factor effect.
 ```{r}
+
 anova(lme.model)
 ```
 
 ### Multivariate approach using lm() / mlm()
 1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
 ```{r}
+
 obs.matrix <- with(obs, # data from obs data frame
                     cbind(
                       FatBIA[TestNumber=="0"], # subject observations baseline
@@ -316,6 +337,7 @@ obs.matrix
 ```
 2. Create a multivariate linear model from the matrix.
 ```{r}
+
 mlm.model <- lm(obs.matrix ~ 1)
 mlm.model
 
@@ -325,12 +347,14 @@ The coefficients are equal to the means across subjects at each test.
 
 3. Create a set of factors.
 ```{r}
+
 rfactor <- as.factor(levels(obs$TestNumber))
 rfactor
 ```
 
 4. Define a new anova model object ```mlm.model.aov```.
 ```{r}
+
 mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
                        idata = data.frame(rfactor),
                        idesign = ~rfactor, 
@@ -356,24 +380,28 @@ summary(mlm.model.aov,
 
 ### Univariate with aov()
 ```{r}
+
 aov.model <- aov(FatSF ~ TestNumber + Error(Subject/TestNumber), data=obs)
 summary(aov.model)
 ```
 ### Univariate approach using lme()
 This method fits a linear mixed-effects model.
 ```{r}
+
 lme.model <- lme(FatSF ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
 summary(lme.model)
 ```
 
 Display F- and p-values for the factor effect.
 ```{r}
+
 anova(lme.model)
 ```
 
 ### Multivariate approach using lm() / mlm()
 1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
 ```{r}
+
 obs.matrix <- with(obs, # data from obs data frame
                     cbind(
                       FatSF[TestNumber=="0"], # subject observations baseline
@@ -391,6 +419,7 @@ obs.matrix
 ```
 2. Create a multivariate linear model from the matrix.
 ```{r}
+
 mlm.model <- lm(obs.matrix ~ 1)
 mlm.model
 
@@ -400,12 +429,14 @@ The coefficients are equal to the means across subjects at each test.
 
 3. Create a set of factors.
 ```{r}
+
 rfactor <- as.factor(levels(obs$TestNumber))
 rfactor
 ```
 
 4. Define a new anova model object ```mlm.model.aov```.
 ```{r}
+
 mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
                        idata = data.frame(rfactor),
                        idesign = ~rfactor, 
@@ -432,7 +463,7 @@ levels(obs$Week) <- c("Baseline", "Week1", "Week2", "Week3")
 
 
 
-### MEP HR
+## MEP HR
 ```{r}
 aboxplot <- ggplot(data=obs, aes(x=Week,y=MEPHR)) + 
   geom_boxplot() +
@@ -449,7 +480,7 @@ aboxplot
 
 
 
-### Weight
+## Weight
 ```{r}
 aboxplot <- ggplot(data=obs, aes(x=Week,y=Weight)) + 
   geom_boxplot() +
@@ -465,7 +496,7 @@ aboxplot
 
 
 
-### MaxRelVO2
+## MaxRelVO2
 ```{r}
 aboxplot <- ggplot(data=obs, aes(x=Week,y=MaxRelVO2)) + 
   geom_boxplot() + 
@@ -480,7 +511,7 @@ aboxplot
 
 
 
-### FatBIA 
+## FatBIA
 ```{r}
 aboxplot <- ggplot(data=obs, aes(x=Week,y=FatBIA)) + 
   geom_boxplot() +
