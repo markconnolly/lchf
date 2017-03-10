@@ -63,26 +63,46 @@ obs
 - The test subject is ```Subject```.
 - The factor is ```TestNumber```.
 
+
 ### Univariate with aov()
-```{r fig.cap = "MEP HR"}
+```{r}
 aov.model <- aov(MEPHR ~ TestNumber + Error(Subject/TestNumber), data=obs)
 summary(aov.model)
 ```
+
+
 ### Univariate approach using lme()
 This method fits a linear mixed-effects model.
-```{r fig.cap = "MEP HR"}
+```{r}
 lme.model <- lme(MEPHR ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
 summary(lme.model)
 ```
 
 Display F- and p-values for the factor effect.
-```{r fig.cap = "MEP HR"}
+```{r}
 anova(lme.model)
 ```
 
+
+### Univariate approach using lme() maximum likelihood
+This method fits a linear mixed-effects model.
+```{r}
+lme.model <- lme(MEPHR ~ TestNumber, 
+                 meth = "ML", 
+                 random = ~1|Subject/TestNumber, data=obs)
+summary(lme.model)
+```
+
+Display F- and p-values for the factor effect.
+```{r}
+anova(lme.model)
+```
+
+
+
 ### Multivariate approach using lm() / mlm()
 1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
-```{r fig.cap = "MEP HR"}
+```{r}
 obs.matrix <- with(obs, # data from obs data frame
                     cbind(
                       MEPHR[TestNumber=="0"], # subject observations baseline
@@ -99,7 +119,7 @@ colnames(obs.matrix) <- levels(obs$TestNumber)
 obs.matrix
 ```
 2. Create a multivariate linear model from the matrix.
-```{r fig.cap = "MEP HR"}
+```{r}
 mlm.model <- lm(obs.matrix ~ 1)
 mlm.model
 
@@ -108,13 +128,13 @@ mlm.model
 The coefficients are equal to the means across subjects at each test.
 
 3. Create a set of factors.
-```{r fig.cap = "MEP HR"}
+```{r}
 rfactor <- as.factor(levels(obs$TestNumber))
 rfactor
 ```
 
 4. Define a new anova model object ```mlm.model.aov```.
-```{r fig.cap = "MEP HR"}
+```{r}
 mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
                        idata = data.frame(rfactor),
                        idesign = ~rfactor, 
