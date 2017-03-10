@@ -473,9 +473,9 @@ summary(mlm.model.aov,
 
 ----
 ## Boxplots
-A little manipulation of the data frame to make the x-axis label appropriately.
+Duplicate TestNumber and set the factor values.  This is simply to make the labels on the box plots fit the requirements of the mad scientist.
 ```{r}
-names(obs)[2] <- "Week"
+obs$Week <- obs$TestNumber
 levels(obs$Week) <- c("Baseline", "Week1", "Week2", "Week3")
 
 ```
