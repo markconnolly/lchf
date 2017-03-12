@@ -2,7 +2,8 @@
 title: "Repeated Measures Analysis of Variance"
 output: 
   html_notebook:
-    fig_caption: yes
+    toc: TRUE
+    theme: "cosmo"
 ---
 # Repeated measures analysis of variance for low carb high fat diet
 The methodology comes from https://gribblelab.wordpress.com/2009/03/09/repeated-measures-anova-using-r/
@@ -42,9 +43,6 @@ Read the data from the CSV file (which was copied and pasted from the source Exc
 ```{r}
 obs <- read_csv("mep_observations.csv")
 
-#sort data to keep the factors ordered for a later matrix
-obs <- obs[order(obs$Subject),]
-
 # these models work with factors
 obs$Subject <- as.factor(obs$Subject)
 obs$TestNumber <- as.factor(obs$TestNumber)
@@ -66,7 +64,9 @@ obs
 
 ### Univariate with aov()
 ```{r}
-aov.model <- aov(MEPHR ~ TestNumber + Error(Subject/TestNumber), data=obs)
+aov.model <- aov(MEPHR ~ TestNumber + 
+                 Error(Subject/TestNumber), 
+                 data=obs)
 summary(aov.model)
 ```
 
@@ -74,22 +74,9 @@ summary(aov.model)
 ### Univariate approach using lme()
 This method fits a linear mixed-effects model.
 ```{r}
-lme.model <- lme(MEPHR ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
-summary(lme.model)
-```
-
-Display F- and p-values for the factor effect.
-```{r}
-anova(lme.model)
-```
-
-
-### Univariate approach using lme() maximum likelihood
-This method fits a linear mixed-effects model.
-```{r}
 lme.model <- lme(MEPHR ~ TestNumber, 
-                 meth = "ML", 
-                 random = ~1|Subject/TestNumber, data=obs)
+                 random = ~1|Subject/TestNumber, 
+                 data=obs)
 summary(lme.model)
 ```
 
@@ -97,6 +84,8 @@ Display F- and p-values for the factor effect.
 ```{r}
 anova(lme.model)
 ```
+
+
 
 
 
@@ -165,7 +154,9 @@ summary(aov.model)
 This method fits a linear mixed-effects model.
 ```{r}
 
-lme.model <- lme(Weight ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
+lme.model <- lme(Weight ~ TestNumber, 
+                 random = ~1|Subject/TestNumber, 
+                 data=obs)
 summary(lme.model)
 ```
 
@@ -245,7 +236,9 @@ summary(aov.model)
 This method fits a linear mixed-effects model.
 ```{r}
 
-lme.model <- lme(MaxRelVO2 ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
+lme.model <- lme(MaxRelVO2 ~ TestNumber, 
+                 random = ~1|Subject/TestNumber, 
+                 data=obs)
 summary(lme.model)
 ```
 
@@ -326,7 +319,9 @@ summary(aov.model)
 This method fits a linear mixed-effects model.
 ```{r}
 
-lme.model <- lme(FatBIA ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
+lme.model <- lme(FatBIA ~ TestNumber, 
+                 random = ~1|Subject/TestNumber, 
+                 data=obs)
 summary(lme.model)
 ```
 
@@ -408,7 +403,9 @@ summary(aov.model)
 This method fits a linear mixed-effects model.
 ```{r}
 
-lme.model <- lme(FatSF ~ TestNumber, random = ~1|Subject/TestNumber, data=obs)
+lme.model <- lme(FatSF ~ TestNumber, 
+                 random = ~1|Subject/TestNumber, 
+                 data=obs)
 summary(lme.model)
 ```
 
@@ -465,85 +462,5 @@ mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
 summary(mlm.model.aov, 
         multivariate = FALSE) # don't show multivariate tests
 ```
-
-
-
-
-
-
-----
-## Boxplots
-Duplicate TestNumber and set the factor values.  This is simply to make the labels on the box plots fit the requirements of the mad scientist.
-```{r}
-obs$Week <- obs$TestNumber
-levels(obs$Week) <- c("Baseline", "Week1", "Week2", "Week3")
-
-```
-
-
-
-
-## MEP HR
-```{r}
-aboxplot <- ggplot(data=obs, aes(x=Week,y=MEPHR)) + 
-  geom_boxplot() +
-  ylim(120,200) +
-  geom_segment(x=1,y=185,xend=2,yend=185) +
-  annotate(geom="text", label="p=0.0290", x=1.5, y=188) +
-  geom_segment(x=1,y=195,xend=4,yend=195) +
-  annotate(geom="text", label="p=0.1769", x=1.5, y=198)
-
-aboxplot
-
-```
-
-
-
-
-## Weight
-```{r}
-aboxplot <- ggplot(data=obs, aes(x=Week,y=Weight)) + 
-  geom_boxplot() +
-  ylim(115,180) + 
-  geom_segment(x=2,y=167,xend=3,yend=167) +
-  annotate(geom="text", label="p=0.0169", x=2.5, y=170) +
-  geom_segment(x=1,y=175,xend=4,yend=175) +
-  annotate(geom="text", label="p=0.0725", x=2.5, y=178)
-
-aboxplot
-
-```
-
-
-
-## MaxRelVO2
-```{r}
-aboxplot <- ggplot(data=obs, aes(x=Week,y=MaxRelVO2)) + 
-  geom_boxplot() + 
-  ylim(30,90) + 
-  geom_segment(x=3,y=75,xend=4,yend=75) +
-  annotate(geom="text", label="p=0.0455", x=3.5, y=78) +
-  geom_segment(x=1,y=85,xend=4,yend=85) +
-  annotate(geom="text", label="p=0.2305", x=3.5, y=88)
-
-aboxplot
-```
-
-
-
-## FatBIA
-```{r}
-aboxplot <- ggplot(data=obs, aes(x=Week,y=FatBIA)) + 
-  geom_boxplot() +
-  ylim(25,70) +
-  geom_segment(x=2,y=60,xend=3,yend=60) +
-  annotate(geom="text", label="p=0.0252", x=2.5, y=63) +
-  geom_segment(x=1,y=65,xend=4,yend=65) +
-  annotate(geom="text", label="p=0.1410", x=2.5, y=68)
-
-aboxplot
-
-```
-
 
 

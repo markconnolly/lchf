@@ -1,0 +1,351 @@
+---
+title: "Paired t-tests for LCHF study"
+output: 
+  html_notebook: 
+    toc: TRUE
+    theme: "cosmo"
+---
+# Repeated measures low carb high fat diet
+
+
+## Packages
+Load the various packages.
+
+```{r setup}
+
+# packages for analysis of repeated measures
+library(nlme)
+library(car)
+
+# document definition and construction
+library(knitr)
+opts_knit$set(eval.after = "fig.cap")
+library(rmarkdown)
+
+#reading and writing files of various types (in this case, csv and text files)
+library(readr)
+
+# data manipulation
+library(tidyr)
+library(dplyr)
+library(tibble)
+
+# pipelining commands
+library(magrittr)
+
+# plots
+library(ggplot2)
+
+```
+
+## Prepare data
+
+```{r}
+obs <- read_csv("mep_observations.csv")
+
+# these models work with factors
+obs$Subject <- as.factor(obs$Subject)
+obs$TestNumber <- as.factor(obs$TestNumber)
+obs <- as_tibble(obs)
+obs$Week <- obs$TestNumber
+levels(obs$Week) <- c("Baseline", "Week1", "Week2", "Week3")
+
+obs <- obs[,c("Subject", "TestNumber", "Week", 
+              "MEPHR", "Weight", "MaxRelVO2", 
+              "FatBIA", "FatSF", 
+              "Avgkcals", "AvgFat", "AvgCHO", "AvgPro")]
+
+obs
+```
+
+
+
+
+
+
+## Average KCal
+### Linear mixed-effects model
+```{r}
+lme.model <- lme(Avgkcals ~ Week, 
+                 random = ~1|Subject/Week, 
+                 data=obs)
+summary(lme.model)
+```
+
+```{r}
+# print F- and p-values
+anova(lme.model)
+```
+
+### Pairwise t-test
+```{r}
+pairwise.t.test(x = obs$Avgkcals,
+                g = obs$Week,
+                p.adjust.method = "bonferroni",
+                pool.sd = FALSE,
+                paired = TRUE )
+```
+### Multivariate approach using lm() / mlm()
+1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
+```{r}
+obs.matrix <- with(obs, # data from obs data frame
+                    cbind(
+                      Avgkcals[Week=="Baseline"], # subject observations baseline
+                      Avgkcals[Week=="Week1"], # subject observations test 1
+                      Avgkcals[Week=="Week2"], # etc
+                      Avgkcals[Week=="Week3"]
+                      ) # cbind column bind, rows are flipped to columns
+                  )
+# set row and column identities
+rownames(obs.matrix) <- levels(obs$Subject)
+colnames(obs.matrix) <- levels(obs$Week)
+
+# display the matrix
+obs.matrix
+```
+2. Create a multivariate linear model from the matrix.
+```{r}
+mlm.model <- lm(obs.matrix ~ 1)
+mlm.model
+
+```
+
+The coefficients are equal to the means across subjects at each test.
+
+3. Create a set of factors.
+```{r}
+rfactor <- as.factor(levels(obs$Week))
+rfactor
+```
+
+4. Define a new anova model object ```mlm.model.aov```.
+```{r}
+mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
+                       idata = data.frame(rfactor),
+                       idesign = ~rfactor, 
+                       type = "III")
+
+summary(mlm.model.aov, 
+        multivariate = FALSE) # don't show multivariate tests
+```
+
+
+
+
+
+
+
+
+## Average Fat
+### Linear mixed-effects model
+```{r}
+lme.model <- lme(AvgFat ~ Week, 
+                 random = ~1|Subject/Week, 
+                 data=obs)
+summary(lme.model)
+```
+
+```{r}
+# print F- and p-values
+anova(lme.model)
+```
+
+### Pairwise t-test
+```{r}
+pairwise.t.test(x = obs$AvgFat,
+                g = obs$Week,
+                p.adjust.method = "bonferroni",
+                pool.sd = FALSE,
+                paired = TRUE )
+```
+### Multivariate approach using lm() / mlm()
+1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
+```{r}
+obs.matrix <- with(obs, # data from obs data frame
+                    cbind(
+                      AvgFat[Week=="Baseline"], # subject observations baseline
+                      AvgFat[Week=="Week1"], # subject observations test 1
+                      AvgFat[Week=="Week2"], # etc
+                      AvgFat[Week=="Week3"]
+                      ) # cbind column bind, rows are flipped to columns
+                  )
+# set row and column identities
+rownames(obs.matrix) <- levels(obs$Subject)
+colnames(obs.matrix) <- levels(obs$Week)
+
+# display the matrix
+obs.matrix
+```
+2. Create a multivariate linear model from the matrix.
+```{r}
+mlm.model <- lm(obs.matrix ~ 1)
+mlm.model
+
+```
+
+The coefficients are equal to the means across subjects at each test.
+
+3. Create a set of factors.
+```{r}
+rfactor <- as.factor(levels(obs$Week))
+rfactor
+```
+
+4. Define a new anova model object ```mlm.model.aov```.
+```{r}
+mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
+                       idata = data.frame(rfactor),
+                       idesign = ~rfactor, 
+                       type = "III")
+
+summary(mlm.model.aov, 
+        multivariate = FALSE) # don't show multivariate tests
+```
+
+
+
+
+
+
+
+
+
+## Average Carbohydrate
+### Linear mixed-effects model
+```{r}
+lme.model <- lme(AvgCHO ~ Week, 
+                 random = ~1|Subject/Week, 
+                 data=obs)
+summary(lme.model)
+```
+
+```{r}
+# print F- and p-values
+anova(lme.model)
+```
+
+### Pairwise t-test
+```{r}
+pairwise.t.test(x = obs$AvgCHO,
+                g = obs$Week,
+                p.adjust.method = "bonferroni",
+                pool.sd = FALSE,
+                paired = TRUE )
+```
+### Multivariate approach using lm() / mlm()
+1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
+```{r}
+obs.matrix <- with(obs, # data from obs data frame
+                    cbind(
+                      AvgCHO[Week=="Baseline"], # subject observations baseline
+                      AvgCHO[Week=="Week1"], # subject observations test 1
+                      AvgCHO[Week=="Week2"], # etc
+                      AvgCHO[Week=="Week3"]
+                      ) # cbind column bind, rows are flipped to columns
+                  )
+# set row and column identities
+rownames(obs.matrix) <- levels(obs$Subject)
+colnames(obs.matrix) <- levels(obs$Week)
+
+# display the matrix
+obs.matrix
+```
+2. Create a multivariate linear model from the matrix.
+```{r}
+mlm.model <- lm(obs.matrix ~ 1)
+mlm.model
+
+```
+
+The coefficients are equal to the means across subjects at each test.
+
+3. Create a set of factors.
+```{r}
+rfactor <- as.factor(levels(obs$Week))
+rfactor
+```
+
+4. Define a new anova model object ```mlm.model.aov```.
+```{r}
+mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
+                       idata = data.frame(rfactor),
+                       idesign = ~rfactor, 
+                       type = "III")
+
+summary(mlm.model.aov, 
+        multivariate = FALSE) # don't show multivariate tests
+```
+
+
+
+
+
+
+
+
+
+## Average Protein
+### Linear mixed-effects model
+```{r}
+lme.model <- lme(AvgPro ~ Week, 
+                 random = ~1|Subject/Week, 
+                 data=obs)
+summary(lme.model)
+```
+
+```{r}
+# print F- and p-values
+anova(lme.model)
+```
+
+### Pairwise t-test
+```{r}
+pairwise.t.test(x = obs$AvgPro,
+                g = obs$Week,
+                p.adjust.method = "bonferroni",
+                pool.sd = FALSE,
+                paired = TRUE )
+```
+### Multivariate approach using lm() / mlm()
+1. Convert data frame to matrix. Each row of the matrix is a subject.  Each column is the test number.
+```{r}
+obs.matrix <- with(obs, # data from obs data frame
+                    cbind(
+                      AvgPro[Week=="Baseline"], # subject observations baseline
+                      AvgPro[Week=="Week1"], # subject observations test 1
+                      AvgPro[Week=="Week2"], # etc
+                      AvgPro[Week=="Week3"]
+                      ) # cbind column bind, rows are flipped to columns
+                  )
+# set row and column identities
+rownames(obs.matrix) <- levels(obs$Subject)
+colnames(obs.matrix) <- levels(obs$Week)
+
+# display the matrix
+obs.matrix
+```
+2. Create a multivariate linear model from the matrix.
+```{r}
+mlm.model <- lm(obs.matrix ~ 1)
+mlm.model
+
+```
+
+The coefficients are equal to the means across subjects at each test.
+
+3. Create a set of factors.
+```{r}
+rfactor <- as.factor(levels(obs$Week))
+rfactor
+```
+
+4. Define a new anova model object ```mlm.model.aov```.
+```{r}
+mlm.model.aov <- Anova(mlm.model, # the multivariate linear model
+                       idata = data.frame(rfactor),
+                       idesign = ~rfactor, 
+                       type = "III")
+
+summary(mlm.model.aov, 
+        multivariate = FALSE) # don't show multivariate tests
+```
