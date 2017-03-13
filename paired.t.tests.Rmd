@@ -50,8 +50,8 @@ obs <- as_tibble(obs)
 obs$Week <- obs$TestNumber
 levels(obs$Week) <- c("Baseline", "Week1", "Week2", "Week3")
 
-obs <- obs[,c("Subject", "TestNumber", "Week", 
-              "MEPHR", "Weight", "MaxRelVO2", 
+obs <- obs[,c("Subject", "TestNumber", "Week",   # move Week next to TestNumber
+              "MEPHR", "Weight", "MaxRelVO2",    # for easy validation
               "FatBIA", "FatSF", 
               "Avgkcals", "AvgFat", "AvgCHO", "AvgPro")]
 
@@ -62,7 +62,7 @@ obs
 
 
 
-
+***
 ## Average KCal
 ### Linear mixed-effects model
 ```{r}
@@ -75,6 +75,15 @@ summary(lme.model)
 ```{r}
 # print F- and p-values
 anova(lme.model)
+```
+
+
+### Boxplot
+```{r}
+aboxplot <- ggplot(data=obs, aes(x=Week,y=Avgkcals)) + 
+            geom_boxplot()
+
+aboxplot
 ```
 
 ### Pairwise t-test
@@ -135,7 +144,7 @@ summary(mlm.model.aov,
 
 
 
-
+***
 ## Average Fat
 ### Linear mixed-effects model
 ```{r}
@@ -148,6 +157,14 @@ summary(lme.model)
 ```{r}
 # print F- and p-values
 anova(lme.model)
+```
+
+### Boxplot
+```{r}
+aboxplot <- ggplot(data=obs, aes(x=Week,y=AvgFat)) + 
+            geom_boxplot()
+
+aboxplot
 ```
 
 ### Pairwise t-test
@@ -209,7 +226,7 @@ summary(mlm.model.aov,
 
 
 
-
+***
 ## Average Carbohydrate
 ### Linear mixed-effects model
 ```{r}
@@ -222,6 +239,14 @@ summary(lme.model)
 ```{r}
 # print F- and p-values
 anova(lme.model)
+```
+
+### Boxplot
+```{r}
+aboxplot <- ggplot(data=obs, aes(x=Week,y=AvgCHO)) + 
+            geom_boxplot()
+
+aboxplot
 ```
 
 ### Pairwise t-test
@@ -283,7 +308,7 @@ summary(mlm.model.aov,
 
 
 
-
+***
 ## Average Protein
 ### Linear mixed-effects model
 ```{r}
@@ -296,6 +321,14 @@ summary(lme.model)
 ```{r}
 # print F- and p-values
 anova(lme.model)
+```
+
+### Boxplot
+```{r}
+aboxplot <- ggplot(data=obs, aes(x=Week,y=AvgPro)) + 
+            geom_boxplot()
+
+aboxplot
 ```
 
 ### Pairwise t-test
