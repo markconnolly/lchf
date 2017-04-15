@@ -81,7 +81,8 @@ anova(lme.model)
 ### Boxplot
 ```{r}
 aboxplot <- ggplot(data=obs, aes(x=Week,y=Avgkcals)) + 
-            geom_boxplot()
+            geom_boxplot() +
+            labs(x="", y=expression("Mean kcal/day"))
 
 aboxplot
 ```
@@ -162,7 +163,9 @@ anova(lme.model)
 ### Boxplot
 ```{r}
 aboxplot <- ggplot(data=obs, aes(x=Week,y=AvgFat)) + 
-            geom_boxplot()
+            geom_boxplot() +
+            annotate(geom="text", label="*", x=2.01, y=180, size=6, family="serif") +
+            labs(x="", y=expression("Mean Fat g/day"))
 
 aboxplot
 ```
@@ -244,7 +247,9 @@ anova(lme.model)
 ### Boxplot
 ```{r}
 aboxplot <- ggplot(data=obs, aes(x=Week,y=AvgCHO)) + 
-            geom_boxplot()
+            geom_boxplot() +
+            annotate(geom="text", label="*", x=2.01, y=190, size=6, family="serif") +
+            labs(x="", y=expression("Mean  Carbohydrates g/day"))
 
 aboxplot
 ```
@@ -326,7 +331,8 @@ anova(lme.model)
 ### Boxplot
 ```{r}
 aboxplot <- ggplot(data=obs, aes(x=Week,y=AvgPro)) + 
-            geom_boxplot()
+            geom_boxplot() +
+            labs(x="", y=expression("Mean Protein g/day"))
 
 aboxplot
 ```
