@@ -63,10 +63,8 @@ obs
 aboxplot <- ggplot(data=obs, aes(x=Week,y=MEPHR)) + 
   geom_boxplot() +
   ylim(120,200) +
-  geom_segment(x=1,y=185,xend=2,yend=185) +
-  annotate(geom="text", label="p=0.0290", x=1.5, y=188) +
-  geom_segment(x=1,y=195,xend=4,yend=195) +
-  annotate(geom="text", label="p=0.1769", x=1.5, y=198)
+  annotate(geom="text", label="*", x=2.01, y=182, size=6, family="serif") +
+  labs(x="", y=expression("MEP Heart Rate"))
 
 aboxplot
 
@@ -80,10 +78,8 @@ aboxplot
 aboxplot <- ggplot(data=obs, aes(x=Week,y=Weight)) + 
   geom_boxplot() +
   ylim(115,180) + 
-  geom_segment(x=2,y=167,xend=3,yend=167) +
-  annotate(geom="text", label="p=0.0169", x=2.5, y=170) +
-  geom_segment(x=1,y=175,xend=4,yend=175) +
-  annotate(geom="text", label="p=0.0725", x=2.5, y=178)
+  annotate(geom="text", label="*", x=3, y=161, size=6, family="serif") +
+  labs(x="", y=expression("Weight (lbs)"))
 
 aboxplot
 
@@ -96,10 +92,8 @@ aboxplot
 aboxplot <- ggplot(data=obs, aes(x=Week,y=MaxRelVO2)) + 
   geom_boxplot() + 
   ylim(30,90) + 
-  geom_segment(x=3,y=75,xend=4,yend=75) +
-  annotate(geom="text", label="p=0.0455", x=3.5, y=78) +
-  geom_segment(x=1,y=85,xend=4,yend=85) +
-  annotate(geom="text", label="p=0.2305", x=3.5, y=88)
+  annotate(geom="text", label="*", x=4, y=73, size=6, family="serif") +
+  labs(x="", y=bquote('Relative ' ~VO[2]~ 'Max'))
 
 aboxplot
 ```
@@ -110,11 +104,9 @@ aboxplot
 ```{r}
 aboxplot <- ggplot(data=obs, aes(x=Week,y=FatBIA)) + 
   geom_boxplot() +
-  ylim(25,70) +
-  geom_segment(x=2,y=60,xend=3,yend=60) +
-  annotate(geom="text", label="p=0.0252", x=2.5, y=63) +
-  geom_segment(x=1,y=65,xend=4,yend=65) +
-  annotate(geom="text", label="p=0.1410", x=2.5, y=68)
+  ylim(25,70) + 
+  annotate(geom="text", label="*", x=3, y=57, size=6, family="serif") +
+  labs(x="", y="Fat (lbs)")
 
 aboxplot
 
